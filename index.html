@@ -954,8 +954,7 @@
             aktualisiertAm: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString()
           });
           applyEventDateUI();
-          alert("Datum der Weihnachtsfeier erfolgreich gespeichert:
-" + formatGermanDate(nextEventDateStr));
+          alert("Datum der Weihnachtsfeier erfolgreich gespeichert:\n" + formatGermanDate(nextEventDateStr));
         } catch (err) {
           alert("Fehler beim Speichern: " + err.message);
         }
@@ -1192,7 +1191,7 @@
                         <span>${isPaid ? 'Bezahlt ✓' : 'Offen'}</span>
                       </button>
 
-                      <button type="button" onclick="deleteSingleOrder('${o.id}', '${o.besteller.replace(/'/g, "\'")}', '${formatEuro(o.gesamtpreis || 0)}')" 
+                      <button type="button" onclick="deleteSingleOrder('${o.id}')" 
                         class="p-1.5 rounded-xl text-red-500 hover:bg-red-100 hover:text-red-700 transition active:scale-90" title="Diese Bestellung löschen">
                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                       </button>
@@ -1357,8 +1356,11 @@
       window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
     }
 
-    async function deleteSingleOrder(orderId, bestellerName, betragStr) {
-      if (!confirm(`Bestellung von "${bestellerName}" (${betragStr}) wirklich löschen?`)) return;
+    async function deleteSingleOrder(orderId) {
+      const ord = liveOrders.find(o => o.id === orderId);
+      const bName = ord ? ord.besteller : "diese";
+      const bPreis = ord ? formatEuro(ord.gesamtpreis || 0) : "";
+      if (!confirm(`Bestellung von "${bName}" (${bPreis}) wirklich löschen?`)) return;
       if (!window.db || !window.deleteDoc || !window.doc) return;
 
       try {
