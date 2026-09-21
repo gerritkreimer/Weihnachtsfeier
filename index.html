@@ -180,10 +180,10 @@
           <h2 id="modalDishName" class="text-lg font-black text-slate-900 leading-tight">Gerichtname</h2>
           <div class="flex items-center space-x-2 mt-0.5">
             <p id="modalDishBasePrice" class="text-sm font-semibold text-slate-500">0,00 €</p>
-            <button id="modalPdfBtn" type="button" onclick="openCurrentDishPdf()" class="hidden text-[11px] font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-lg flex items-center space-x-1">
-              <i data-lucide="file-text" class="w-3 h-3"></i>
+            <a id="modalPdfBtn" href="#" target="_blank" rel="noopener noreferrer" class="hidden text-[11px] font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-300 px-2.5 py-1 rounded-lg flex items-center space-x-1 transition active:scale-95">
+              <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
               <span>Speisekarte (PDF)</span>
-            </button>
+            </a>
           </div>
         </div>
         <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-700 p-1 rounded-full bg-slate-100">
@@ -665,9 +665,9 @@
               <span class="text-base font-black text-amber-300 drop-shadow-sm">${formatEuro(dish.price)}</span>
               <div class="flex items-center space-x-1.5 mt-1.5">
                 ${dish.pdf ? `
-                  <button type="button" onclick="event.stopPropagation(); openDishPdf('${dish.pdf}')" class="bg-emerald-950/80 hover:bg-amber-400 hover:text-emerald-950 text-amber-300 p-1.5 rounded-xl flex items-center justify-center border border-amber-400/40 transition active:scale-90" title="Speisekarte (PDF) ansehen">
+                  <a href="./${dish.pdf}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" class="bg-emerald-950/80 hover:bg-amber-400 hover:text-emerald-950 text-amber-300 p-1.5 rounded-xl flex items-center justify-center border border-amber-400/40 transition active:scale-90" title="Speisekarte (PDF) ansehen">
                     <i data-lucide="file-text" class="w-4 h-4"></i>
-                  </button>
+                  </a>
                 ` : ''}
                 <span class="bg-amber-400/15 text-amber-300 p-1.5 rounded-xl flex items-center justify-center border border-amber-400/30 group-hover:bg-amber-400 group-hover:text-emerald-950 transition-all">
                   <i data-lucide="plus" class="w-4 h-4"></i>
@@ -696,6 +696,7 @@
       const pdfBtn = document.getElementById("modalPdfBtn");
       if (pdfBtn) {
         if (currentDish.pdf) {
+          pdfBtn.href = "./" + currentDish.pdf;
           pdfBtn.classList.remove("hidden");
         } else {
           pdfBtn.classList.add("hidden");
