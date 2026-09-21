@@ -4,10 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Weihnachtsessen</title>
-<link rel="manifest" href="./manifest.json">
-  <link rel="icon" type="image/png" href="./icon.png">
+  <link rel="manifest" href="./manifest.json">
   <link rel="icon" type="image/png" href="./Icon.png">
-  <link rel="apple-touch-icon" href="./icon.png">
   <link rel="apple-touch-icon" href="./Icon.png">
   <meta name="theme-color" content="#1b4332">
   <!-- Tailwind CSS via CDN -->
@@ -180,7 +178,13 @@
         <div>
           <span id="modalDishCategory" class="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Kategorie</span>
           <h2 id="modalDishName" class="text-lg font-black text-slate-900 leading-tight">Gerichtname</h2>
-          <p id="modalDishBasePrice" class="text-sm font-semibold text-slate-500">0,00 €</p>
+          <div class="flex items-center space-x-2 mt-0.5">
+            <p id="modalDishBasePrice" class="text-sm font-semibold text-slate-500">0,00 €</p>
+            <button id="modalPdfBtn" type="button" onclick="openCurrentDishPdf()" class="hidden text-[11px] font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-lg flex items-center space-x-1">
+              <i data-lucide="file-text" class="w-3 h-3"></i>
+              <span>Speisekarte (PDF)</span>
+            </button>
+          </div>
         </div>
         <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-700 p-1 rounded-full bg-slate-100">
           <i data-lucide="x" class="w-5 h-5"></i>
@@ -444,55 +448,55 @@
     // --- STAMMDATEN MATRIX (EXAKT AUS DEINEM VBA-CODE PORTIERT) ---
     const DISHES = [
       // KATEGORIE: Burger & Spezialburger
-      { id: 101, category: "Burger & Spezialburger", name: "Sun Burger", price: 9.90, hasBeilage: true },
-      { id: 102, category: "Burger & Spezialburger", name: "Lady Burger", price: 8.00, hasBeilage: true },
-      { id: 103, category: "Burger & Spezialburger", name: "Sun Cheese", price: 10.40, hasBeilage: true },
-      { id: 104, category: "Burger & Spezialburger", name: "Sun Double", price: 11.80, hasBeilage: true },
-      { id: 105, category: "Burger & Spezialburger", name: "Sun Double Cheese", price: 12.90, hasBeilage: true },
-      { id: 106, category: "Burger & Spezialburger", name: "Sun Louis", price: 11.80, hasBeilage: true },
-      { id: 107, category: "Burger & Spezialburger", name: "Sun Double Louis Style", price: 14.50, hasBeilage: true },
-      { id: 108, category: "Burger & Spezialburger", name: "H & S Burger", price: 11.50, hasBeilage: true },
-      { id: 109, category: "Burger & Spezialburger", name: "Sun Francis Burger", price: 11.60, hasBeilage: true },
-      { id: 110, category: "Burger & Spezialburger", name: "Chili Burger", price: 13.50, hasBeilage: true },
-      { id: 111, category: "Burger & Spezialburger", name: "Hawaii Burger", price: 11.60, hasBeilage: true },
-      { id: 112, category: "Burger & Spezialburger", name: "Chicken Burger", price: 12.20, hasBeilage: true },
-      { id: 113, category: "Burger & Spezialburger", name: "B & E Burger", price: 12.50, hasBeilage: true },
-      { id: 114, category: "Burger & Spezialburger", name: "Meggie Burger Veggie", price: 12.00, hasBeilage: true },
-      { id: 115, category: "Burger & Spezialburger", name: "Surf & Turf Burger", price: 14.50, hasBeilage: true },
-      { id: 116, category: "Burger & Spezialburger", name: "Tartufo Calabrese Burger", price: 14.50, hasBeilage: true },
-      { id: 117, category: "Burger & Spezialburger", name: "Camembert Burger", price: 11.90, hasBeilage: true },
-      { id: 118, category: "Burger & Spezialburger", name: "King of Bacon Burger", price: 14.50, hasBeilage: true },
+      { id: 101, category: "Burger & Spezialburger", name: "Sun Burger", price: 9.90, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 102, category: "Burger & Spezialburger", name: "Lady Burger", price: 8.00, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 103, category: "Burger & Spezialburger", name: "Sun Cheese", price: 10.40, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 104, category: "Burger & Spezialburger", name: "Sun Double", price: 11.80, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 105, category: "Burger & Spezialburger", name: "Sun Double Cheese", price: 12.90, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 106, category: "Burger & Spezialburger", name: "Sun Louis", price: 11.80, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 107, category: "Burger & Spezialburger", name: "Sun Double Louis Style", price: 14.50, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 108, category: "Burger & Spezialburger", name: "H & S Burger", price: 11.50, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 109, category: "Burger & Spezialburger", name: "Sun Francis Burger", price: 11.60, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 110, category: "Burger & Spezialburger", name: "Chili Burger", price: 13.50, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 111, category: "Burger & Spezialburger", name: "Hawaii Burger", price: 11.60, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 112, category: "Burger & Spezialburger", name: "Chicken Burger", price: 12.20, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 113, category: "Burger & Spezialburger", name: "B & E Burger", price: 12.50, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 114, category: "Burger & Spezialburger", name: "Meggie Burger Veggie", price: 12.00, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 115, category: "Burger & Spezialburger", name: "Surf & Turf Burger", price: 14.50, hasBeilage: true, pdf: "Spezial.pdf" },
+      { id: 116, category: "Burger & Spezialburger", name: "Tartufo Calabrese Burger", price: 14.50, hasBeilage: true, pdf: "Spezial.pdf" },
+      { id: 117, category: "Burger & Spezialburger", name: "Camembert Burger", price: 11.90, hasBeilage: true, pdf: "Spezial.pdf" },
+      { id: 118, category: "Burger & Spezialburger", name: "King of Bacon Burger", price: 14.50, hasBeilage: true, pdf: "Spezial.pdf" },
 
       // KATEGORIE: Schnitzelparty
-      { id: 201, category: "Schnitzelparty", name: "Kröstchen", price: 12.90, hasBeilage: true },
-      { id: 202, category: "Schnitzelparty", name: "Champignonrahmschnitzel", price: 12.90, hasBeilage: true },
-      { id: 203, category: "Schnitzelparty", name: "Zigeunerschnitzel", price: 12.90, hasBeilage: true },
-      { id: 204, category: "Schnitzelparty", name: "Hawaiischnitzel", price: 13.50, hasBeilage: true },
-      { id: 205, category: "Schnitzelparty", name: "Brauhausschnitzel", price: 14.50, hasBeilage: true },
-      { id: 206, category: "Schnitzelparty", name: "Zwiebelschnitzel", price: 14.30, hasBeilage: true },
+      { id: 201, category: "Schnitzelparty", name: "Kröstchen", price: 12.90, hasBeilage: true, pdf: "Schnitzel.pdf" },
+      { id: 202, category: "Schnitzelparty", name: "Champignonrahmschnitzel", price: 12.90, hasBeilage: true, pdf: "Schnitzel.pdf" },
+      { id: 203, category: "Schnitzelparty", name: "Zigeunerschnitzel", price: 12.90, hasBeilage: true, pdf: "Schnitzel.pdf" },
+      { id: 204, category: "Schnitzelparty", name: "Hawaiischnitzel", price: 13.50, hasBeilage: true, pdf: "Schnitzel.pdf" },
+      { id: 205, category: "Schnitzelparty", name: "Brauhausschnitzel", price: 14.50, hasBeilage: true, pdf: "Schnitzel.pdf" },
+      { id: 206, category: "Schnitzelparty", name: "Zwiebelschnitzel", price: 14.30, hasBeilage: true, pdf: "Schnitzel.pdf" },
 
       // KATEGORIE: Klassiker & Tex Mex
-      { id: 301, category: "Klassiker & Tex Mex", name: "Portion Pommes Frites", price: 4.00 },
-      { id: 302, category: "Klassiker & Tex Mex", name: "Portion Twister / Wedges / Süßkartoffel", price: 6.00, variantsTitle: "Art der Pommes", variants: [{ name: "Twister", price: 0 }, { name: "Wedges", price: 0 }, { name: "Süßkartoffel-Pommes", price: 0 }] },
-      { id: 303, category: "Klassiker & Tex Mex", name: "Currywurst mit Pommes", price: 6.90, variantsTitle: "Schärfegrad", variants: [{ name: "Currywurst klassisch", price: 0 }, { name: "Currywurst scharf", price: 0 }] },
-      { id: 304, category: "Klassiker & Tex Mex", name: "Hot Dog mit Fritten", price: 7.90, hasBeilage: true },
-      { id: 305, category: "Klassiker & Tex Mex", name: "Hot Chili Dog mit Fritten", price: 9.90, hasBeilage: true },
-      { id: 306, category: "Klassiker & Tex Mex", name: "Hot Chili Cheesedog mit Fritten", price: 10.50, hasBeilage: true },
-      { id: 307, category: "Klassiker & Tex Mex", name: "1/2 Hähnchen Sonnenart", price: 9.00 },
-      { id: 308, category: "Klassiker & Tex Mex", name: "Hollo Bollo Auflauf", price: 11.50 },
-      { id: 309, category: "Klassiker & Tex Mex", name: "Kartoffelglück", price: 12.00 },
-      { id: 310, category: "Klassiker & Tex Mex", name: "Chicken Wings", price: 11.50 },
-      { id: 311, category: "Klassiker & Tex Mex", name: "Baked Potato", price: 8.50 },
-      { id: 312, category: "Klassiker & Tex Mex", name: "Chilibowl", price: 9.90 },
-      { id: 313, category: "Klassiker & Tex Mex", name: "Fajita", price: 11.50 },
-      { id: 314, category: "Klassiker & Tex Mex", name: "Nachos mit Salsa", price: 5.50 },
-      { id: 315, category: "Klassiker & Tex Mex", name: "Nachos mit warmer Käsesauce", price: 5.70 },
-      { id: 316, category: "Klassiker & Tex Mex", name: "Überbackene Nachos mit Salsa", price: 6.90 },
+      { id: 301, category: "Klassiker & Tex Mex", name: "Portion Pommes Frites", price: 4.00, pdf: "Klassiker.pdf" },
+      { id: 302, category: "Klassiker & Tex Mex", name: "Portion Twister / Wedges / Süßkartoffel", price: 6.00, variantsTitle: "Art der Pommes", variants: [{ name: "Twister", price: 0 }, { name: "Wedges", price: 0 }, { name: "Süßkartoffel-Pommes", price: 0 }], pdf: "Klassiker.pdf" },
+      { id: 303, category: "Klassiker & Tex Mex", name: "Currywurst mit Pommes", price: 6.90, variantsTitle: "Schärfegrad", variants: [{ name: "Currywurst klassisch", price: 0 }, { name: "Currywurst scharf", price: 0 }], pdf: "Klassiker.pdf" },
+      { id: 304, category: "Klassiker & Tex Mex", name: "Hot Dog mit Fritten", price: 7.90, hasBeilage: true, pdf: "Klassiker.pdf" },
+      { id: 305, category: "Klassiker & Tex Mex", name: "Hot Chili Dog mit Fritten", price: 9.90, hasBeilage: true, pdf: "Klassiker.pdf" },
+      { id: 306, category: "Klassiker & Tex Mex", name: "Hot Chili Cheesedog mit Fritten", price: 10.50, hasBeilage: true, pdf: "Klassiker.pdf" },
+      { id: 307, category: "Klassiker & Tex Mex", name: "1/2 Hähnchen Sonnenart", price: 9.00, pdf: "Klassiker.pdf" },
+      { id: 308, category: "Klassiker & Tex Mex", name: "Hollo Bollo Auflauf", price: 11.50, pdf: "Klassiker.pdf" },
+      { id: 309, category: "Klassiker & Tex Mex", name: "Kartoffelglück", price: 12.00, pdf: "Klassiker.pdf" },
+      { id: 310, category: "Klassiker & Tex Mex", name: "Chicken Wings", price: 11.50, pdf: "Klassiker.pdf" },
+      { id: 311, category: "Klassiker & Tex Mex", name: "Baked Potato", price: 8.50, pdf: "Klassiker.pdf" },
+      { id: 312, category: "Klassiker & Tex Mex", name: "Chilibowl", price: 9.90, pdf: "Klassiker.pdf" },
+      { id: 313, category: "Klassiker & Tex Mex", name: "Fajita", price: 11.50, pdf: "Klassiker.pdf" },
+      { id: 314, category: "Klassiker & Tex Mex", name: "Nachos mit Salsa", price: 5.50, pdf: "Klassiker.pdf" },
+      { id: 315, category: "Klassiker & Tex Mex", name: "Nachos mit warmer Käsesauce", price: 5.70, pdf: "Klassiker.pdf" },
+      { id: 316, category: "Klassiker & Tex Mex", name: "Überbackene Nachos mit Salsa", price: 6.90, pdf: "Klassiker.pdf" },
 
       // KATEGORIE: Salate
-      { id: 401, category: "Salate", name: "Wald- & Wiesensalat", price: 12.90 },
-      { id: 402, category: "Salate", name: "Fresh & Spicy Salat", price: 14.50, variantsTitle: "Einlage", variants: [{ name: "mit Spargel & Garnelen", price: 0 }, { name: "mit Hühnerbrust", price: 0 }] },
-      { id: 403, category: "Salate", name: "Beilagensalat", price: 4.00 }
+      { id: 401, category: "Salate", name: "Wald- & Wiesensalat", price: 12.90, pdf: "Schnitzel.pdf" },
+      { id: 402, category: "Salate", name: "Fresh & Spicy Salat", price: 14.50, variantsTitle: "Einlage", variants: [{ name: "mit Spargel & Garnelen", price: 0 }, { name: "mit Hühnerbrust", price: 0 }], pdf: "Schnitzel.pdf" },
+      { id: 403, category: "Salate", name: "Beilagensalat", price: 4.00, pdf: "Schnitzel.pdf" }
     ];
 
     // --- APP STATE ---
@@ -659,9 +663,16 @@
             </div>
             <div class="text-right flex flex-col items-end">
               <span class="text-base font-black text-amber-300 drop-shadow-sm">${formatEuro(dish.price)}</span>
-              <span class="mt-1.5 bg-amber-400/15 text-amber-300 p-1.5 rounded-xl flex items-center justify-center border border-amber-400/30 group-hover:bg-amber-400 group-hover:text-emerald-950 transition-all">
-                <i data-lucide="plus" class="w-4 h-4"></i>
-              </span>
+              <div class="flex items-center space-x-1.5 mt-1.5">
+                ${dish.pdf ? `
+                  <button type="button" onclick="event.stopPropagation(); openDishPdf('${dish.pdf}')" class="bg-emerald-950/80 hover:bg-amber-400 hover:text-emerald-950 text-amber-300 p-1.5 rounded-xl flex items-center justify-center border border-amber-400/40 transition active:scale-90" title="Speisekarte (PDF) ansehen">
+                    <i data-lucide="file-text" class="w-4 h-4"></i>
+                  </button>
+                ` : ''}
+                <span class="bg-amber-400/15 text-amber-300 p-1.5 rounded-xl flex items-center justify-center border border-amber-400/30 group-hover:bg-amber-400 group-hover:text-emerald-950 transition-all">
+                  <i data-lucide="plus" class="w-4 h-4"></i>
+                </span>
+              </div>
             </div>
           </div>
         `;
@@ -682,6 +693,14 @@
       document.getElementById("modalDishCategory").textContent = currentDish.category;
       document.getElementById("modalDishName").textContent = currentDish.name;
       document.getElementById("modalDishBasePrice").textContent = "Basispreis: " + formatEuro(currentDish.price);
+      const pdfBtn = document.getElementById("modalPdfBtn");
+      if (pdfBtn) {
+        if (currentDish.pdf) {
+          pdfBtn.classList.remove("hidden");
+        } else {
+          pdfBtn.classList.add("hidden");
+        }
+      }
       document.getElementById("modalQuantity").textContent = selectedQuantity;
 
       // Varianten Container (z.B. Currywurst scharf / klassisch)
@@ -1449,6 +1468,8 @@
     window.checkAndLoadUserOrder = checkAndLoadUserOrder;
     window.saveEventDateFromAdmin = saveEventDateFromAdmin;
     window.togglePaymentStatus = togglePaymentStatus;
+    window.openDishPdf = openDishPdf;
+    window.openCurrentDishPdf = openCurrentDishPdf;
   </script>
 
   <!-- Schneefall Animation Logik -->
