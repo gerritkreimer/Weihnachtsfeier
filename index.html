@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Weihnachtsfeier – Essensvorbestellung</title>
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#1b4332">
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    * { -webkit-tap-highlight-color: transparent; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1rem); }
+    /* Subtiler Schneefall-Effekt im Header */
+    .snow-bg {
+      background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+  </style>
+</head>
+<body class="bg-amber-50/40 text-slate-800 min-h-screen flex flex-col pb-24 select-none">
+
+  <!-- Header: Festliches Tannengrün & Gold -->
+  <header class="bg-gradient-to-r from-emerald-950 via-green-900 to-emerald-950 text-white px-4 py-4 sticky top-0 z-30 shadow-md snow-bg border-b border-amber-500/30">
+    <div class="max-w-md mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-2.5 cursor-pointer" onclick="handleAdminTrigger()" title="Admin-Bereich öffnen">
+        <span class="text-2xl select-none active:scale-125 transition-transform">🎄</span>
+        <div>
+          <h1 class="text-lg font-black tracking-tight leading-tight flex items-center space-x-1">
+            <span>Weihnachtsfeier</span>
+            <span class="text-amber-300 text-xs font-serif italic">2026</span>
+          </h1>
+          <p class="text-xs text-emerald-200 flex items-center space-x-1.5">
+            <span id="headerEventDate">Essensvorbestellung</span>
+            <span id="adminBadge" class="hidden bg-amber-400 text-emerald-950 text-[10px] font-black px-1.5 py-0.2 rounded font-mono">ADMIN</span>
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-1.5">
+        <button id="adminHeaderBtn" onclick="openAdminModal()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-2.5 py-1.5 rounded-full text-xs font-black shadow transition flex items-center space-x-1">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+          <span>Admin</span>
+        </button>
+        <button onclick="editUserPrompt()" class="bg-emerald-900/80 hover:bg-emerald-800 px-3 py-1.5 rounded-full text-xs font-semibold flex items-center space-x-1 border border-amber-400/40 transition text-amber-100">
+          <i data-lucide="user" class="w-3.5 h-3.5"></i>
+          <span id="headerUserName">Anmelden</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-md mx-auto w-full px-3 pt-3 flex-1">
+
+    <!-- Status Banner: Dynamische Ampel -->
+    <div id="shopStatusBanner" class="mb-3 rounded-xl p-3 flex items-center space-x-3 text-xs shadow-sm border transition-colors duration-300 bg-emerald-50 border-emerald-300 text-emerald-950">
+      <div id="statusDot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping flex-shrink-0"></div>
+      <div id="statusBannerText" class="flex-1 font-medium">
+        Speisenauswahl für unsere <span class="font-black text-emerald-950">Weihnachtsfeier</span> geöffnet!
+      </div>
+    </div>
+
+    <!-- Meine aktuelle Bestellung Card (Erscheint nur wenn Bestellung vorliegt) -->
+    <div id="userOrderCard" class="hidden mb-3 bg-white border-2 border-amber-500 rounded-2xl p-4 shadow-md">
+      <div class="flex items-center justify-between pb-2 border-b border-amber-100">
+        <div class="flex items-center space-x-1.5 text-emerald-950">
+          <i data-lucide="gift" class="w-4 h-4 text-amber-600"></i>
+          <span class="text-xs font-black uppercase tracking-wider">Deine Festtags-Auswahl</span>
+        </div>
+        <span id="userOrderStatusBadge" class="text-[10px] font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">Gebucht</span>
+      </div>
+
+      <div id="userOrderItemsList" class="py-2.5 space-y-1.5 text-xs">
+        <!-- Dynamisch befüllt -->
+      </div>
+
+      <div class="pt-2 border-t border-amber-100 flex items-center justify-between">
+        <div>
+          <span class="text-[11px] text-slate-400 font-semibold">Gesamtsumme</span>
+          <p id="userOrderTotal" class="text-base font-black text-emerald-950">0,00 €</p>
+        </div>
+        <button id="btnCancelOrEditOrder" onclick="cancelAndEditOrder()" class="bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold px-3 py-1.5 rounded-xl text-xs flex items-center space-x-1 transition active:scale-95 border border-amber-300">
+          <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+          <span>Bestellung anpassen</span>
+        </button>
+      </div>
+      <p id="orderLockNotice" class="hidden text-[10px] text-red-700 font-medium mt-1 text-right">Bestellfenster geschlossen</p>
+    </div>
+
+    <!-- Kategorien Tabs -->
+    <div class="flex space-x-2 overflow-x-auto no-scrollbar pb-2 pt-1" id="categoryBar">
+      <!-- Dynamisch per JS -->
+    </div>
+
+    <!-- Speisen Liste -->
+    <div class="space-y-2.5 mt-2" id="dishesList">
+      <!-- Dynamisch per JS -->
+    </div>
+
+  </main>
+
+  <!-- Floating Warenkorb Footer Bar -->
+  <div class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-amber-200 shadow-2xl px-4 py-3 pb-safe">
+    <div class="max-w-md mx-auto flex items-center justify-between">
+      <button onclick="toggleCartModal(true)" class="flex items-center space-x-3 focus:outline-none">
+        <div class="relative bg-gradient-to-br from-emerald-900 to-green-950 text-white p-2.5 rounded-2xl shadow border border-amber-400/40">
+          <i data-lucide="shopping-bag" class="w-5 h-5 text-amber-300"></i>
+          <span id="cartBadge" class="absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow">0</span>
+        </div>
+        <div class="text-left">
+          <p class="text-xs text-slate-500 font-medium">Dein Festmahl</p>
+          <p id="cartTotalSum" class="text-base font-black text-emerald-950">0,00 €</p>
+        </div>
+      </button>
+
+      <button onclick="toggleCartModal(true)" id="btnOpenCart" class="bg-gradient-to-r from-red-700 to-red-800 hover:from-red-800 hover:to-red-900 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md transition flex items-center space-x-1.5 border border-red-500/50">
+        <span>Auswahl prüfen</span>
+        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: Nutzer Vor- und Nachname erfassen -->
+  <div id="userModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl text-left border border-amber-200">
+      <div class="flex items-center space-x-3 mb-4">
+        <div class="w-10 h-10 bg-emerald-100 text-emerald-900 rounded-2xl flex items-center justify-center font-bold">
+          <i data-lucide="user-check" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-black text-slate-900 leading-tight">Wer bestellt?</h3>
+          <p class="text-xs text-slate-500">Für die Vorbestellungsliste</p>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Vorname</label>
+          <input type="text" id="inputFirstName" placeholder="z. B. Fritze" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white transition">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nachname</label>
+          <input type="text" id="inputLastName" placeholder="z. B. Fischer" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white transition">
+        </div>
+      </div>
+
+      <button onclick="saveUserNames()" class="mt-5 w-full bg-emerald-900 hover:bg-emerald-800 active:scale-95 text-amber-200 font-bold py-3 rounded-xl shadow-md transition text-sm flex items-center justify-center space-x-2 border border-amber-400/40">
+        <span>Speichern & Fortfahren</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: Speise Konfigurator (Varianten & Beilagen aus VBA) -->
+  <div id="itemConfigModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center transition-opacity">
+    <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 shadow-2xl max-h-[90vh] flex flex-col animate-in slide-in-from-bottom duration-200 border-t sm:border border-amber-300">
+      
+      <div class="flex justify-between items-start pb-3 border-b border-slate-100">
+        <div>
+          <span id="modalDishCategory" class="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Kategorie</span>
+          <h2 id="modalDishName" class="text-lg font-black text-slate-900 leading-tight">Gerichtname</h2>
+          <p id="modalDishBasePrice" class="text-sm font-semibold text-slate-500">0,00 €</p>
+        </div>
+        <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-700 p-1 rounded-full bg-slate-100">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="overflow-y-auto py-4 space-y-4 flex-1">
+        <!-- Option 1: Varianten -->
+        <div id="opt1Container">
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-2" id="opt1Title">Variante</label>
+          <div class="grid grid-cols-1 gap-2" id="opt1Options"></div>
+        </div>
+
+        <!-- Option 2: Beilagen -->
+        <div id="opt2Container">
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-2" id="opt2Title">Beilage wählen</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="opt2Options"></div>
+        </div>
+
+        <!-- Anzahl -->
+        <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+          <span class="text-sm font-bold text-slate-700">Portionen</span>
+          <div class="flex items-center space-x-3 bg-slate-100 p-1 rounded-xl border border-slate-200">
+            <button type="button" onclick="adjustQuantity(-1)" class="w-10 h-10 bg-white rounded-lg shadow-sm font-black text-xl text-slate-700 flex items-center justify-center hover:bg-slate-50 active:scale-95 transition">-</button>
+            <span id="modalQuantity" class="w-8 text-center font-black text-base text-slate-900">1</span>
+            <button type="button" onclick="adjustQuantity(1)" class="w-10 h-10 bg-white rounded-lg shadow-sm font-black text-xl text-slate-700 flex items-center justify-center hover:bg-slate-50 active:scale-95 transition">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+        <div>
+          <p class="text-xs text-slate-400 font-medium">Gesamt</p>
+          <p id="modalCalculatedSum" class="text-xl font-black text-emerald-950">0,00 €</p>
+        </div>
+        <button onclick="addCurrentItemToCart()" class="bg-emerald-900 hover:bg-emerald-800 active:scale-95 text-amber-200 font-bold px-6 py-3 rounded-xl shadow-lg transition flex items-center space-x-2 border border-amber-400/40">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>In den Warenkorb</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL: Warenkorb & Abschicken -->
+  <div id="cartModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center transition-opacity">
+    <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 shadow-2xl max-h-[90vh] flex flex-col animate-in slide-in-from-bottom duration-200 border-t sm:border border-amber-300">
+      
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+        <div class="flex items-center space-x-2 text-emerald-950">
+          <i data-lucide="shopping-bag" class="w-5 h-5 text-amber-600"></i>
+          <h2 class="text-lg font-black">Dein Weihnachtsessen</h2>
+        </div>
+        <button onclick="toggleCartModal(false)" class="text-slate-400 hover:text-slate-700 p-1 rounded-full bg-slate-100">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="mt-3 bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-center justify-between text-xs">
+        <div>
+          <span class="text-slate-500">Bestellung für:</span>
+          <p id="cartUserName" class="font-black text-emerald-950 text-sm">Fischer, Fritze</p>
+        </div>
+        <button onclick="editUserPrompt()" class="text-amber-800 font-bold underline">Ändern</button>
+      </div>
+
+      <div id="cartItemsList" class="overflow-y-auto py-3 space-y-2 flex-1 divide-y divide-slate-100"></div>
+
+      <div class="pt-3 border-t border-slate-100 space-y-3">
+        <div class="flex justify-between items-baseline">
+          <span class="text-sm font-bold text-slate-600">Gesamtbetrag</span>
+          <span id="cartModalTotal" class="text-2xl font-black text-emerald-950">0,00 €</span>
+        </div>
+
+        <button onclick="submitOrder()" id="btnSubmitOrder" class="w-full bg-gradient-to-r from-red-700 to-red-800 hover:from-red-800 hover:to-red-900 active:scale-95 text-white font-black py-3.5 rounded-xl shadow-lg transition flex items-center justify-center space-x-2 text-base border border-red-500/50">
+          <i data-lucide="check-circle" class="w-5 h-5 text-amber-300"></i>
+          <span>Verbindlich vorbestellen</span>
+        </button>
+
+        <p class="text-[11px] text-center text-slate-400">Vorbestellung für die Weihnachtsfeier</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL: Bestätigung nach Abschicken -->
+  <div id="successModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center flex flex-col items-center border border-amber-300">
+      <div class="w-14 h-14 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mb-3">
+        <i data-lucide="sparkles" class="w-8 h-8 text-amber-600"></i>
+      </div>
+      
+      <h3 class="text-xl font-black text-slate-900">Essen vorbestellt! 🎄</h3>
+      <p class="text-xs text-slate-500 mt-1" id="successModalSubtitle">Deine Auswahl wurde gespeichert.</p>
+
+      <div class="my-4 bg-amber-50/60 border border-amber-200 rounded-2xl p-4 w-full">
+        <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Vorbestellter Betrag</p>
+        <p id="successModalAmount" class="text-3xl font-black text-emerald-950 mt-1">0,00 €</p>
+      </div>
+
+      <button onclick="finishOrderAndReload()" class="w-full bg-emerald-900 hover:bg-emerald-800 text-amber-200 font-bold py-3 rounded-xl shadow-md transition text-sm">
+        Super, danke!
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: ADMIN / AUSWERTUNG / RESTAURANT EXPORT -->
+  <div id="adminModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center transition-opacity">
+    <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-2xl p-5 shadow-2xl max-h-[92vh] flex flex-col animate-in slide-in-from-bottom duration-200 border-t sm:border border-amber-300">
+      
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center font-bold">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-black text-slate-900">Admin-Auswertung</h2>
+            <p class="text-[11px] text-slate-400">Weihnachtsfeier-Bestellungen</p>
+          </div>
+        </div>
+        <button onclick="closeAdminModal()" class="text-slate-400 hover:text-slate-700 p-1 rounded-full bg-slate-100">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Termin-Verwaltung durch Admin -->
+      <div class="mb-3 bg-amber-50/80 border border-amber-200 rounded-2xl p-3 text-xs mt-3">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="font-black text-amber-950 flex items-center space-x-1">
+            <i data-lucide="calendar" class="w-3.5 h-3.5 text-amber-700"></i>
+            <span>Datum der Weihnachtsfeier</span>
+          </span>
+          <span id="adminCurrentDateDisplay" class="font-bold text-amber-800 font-mono">--</span>
+        </div>
+        <div class="flex items-center space-x-2">
+          <input type="date" id="adminDateInput" class="flex-1 bg-white border border-amber-300 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500">
+          <button onclick="saveEventDateFromAdmin()" class="bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-bold px-3 py-1.5 rounded-xl shadow-sm transition">
+            Speichern
+          </button>
+        </div>
+      </div>
+
+      <!-- Kacheln: Kennzahlen -->
+      <div class="grid grid-cols-3 gap-2 my-2">
+        <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-2.5 text-center">
+          <p class="text-[10px] uppercase font-bold text-emerald-700">Besteller</p>
+          <p id="adminTotalOrders" class="text-lg font-black text-emerald-950">0</p>
+        </div>
+        <div class="bg-amber-50 border border-amber-100 rounded-xl p-2.5 text-center">
+          <p class="text-[10px] uppercase font-bold text-amber-700">Bezahlt</p>
+          <p id="adminPaidSummary" class="text-lg font-black text-amber-950">0 / 0</p>
+        </div>
+        <div class="bg-red-50 border border-red-100 rounded-xl p-2.5 text-center">
+          <p class="text-[10px] uppercase font-bold text-red-700">Umsatz</p>
+          <p id="adminTotalRevenue" class="text-xs font-black text-slate-900 mt-1">0,00 €</p>
+        </div>
+      </div>
+
+      <!-- WhatsApp Button für Restaurant -->
+      <div class="mb-3">
+        <button onclick="sendWhatsAppToVendor()" class="w-full bg-[#25D366] hover:bg-[#1ebd5a] active:scale-95 text-slate-950 font-black py-3 px-4 rounded-xl shadow-md transition flex items-center justify-center space-x-2 text-sm">
+          <i data-lucide="message-circle" class="w-4 h-4"></i>
+          <span>Gesamtbestellung via WhatsApp ans Restaurant senden</span>
+        </button>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex space-x-1.5 border-b border-slate-200 pb-1 text-xs font-bold overflow-x-auto no-scrollbar">
+        <button id="tabAggBtn" onclick="switchAdminTab('agg')" class="px-2.5 py-1.5 border-b-2 border-emerald-900 text-emerald-900 whitespace-nowrap">
+          Küchen-Gesamtliste
+        </button>
+        <button id="tabUsersBtn" onclick="switchAdminTab('users')" class="px-2.5 py-1.5 border-b-2 border-transparent text-slate-500 whitespace-nowrap">
+          Kollegen-Abrechnung
+        </button>
+        <button id="tabHistoryBtn" onclick="switchAdminTab('history')" class="px-2.5 py-1.5 border-b-2 border-transparent text-slate-500 whitespace-nowrap flex items-center space-x-1">
+          <i data-lucide="archive" class="w-3.5 h-3.5"></i>
+          <span>Historie / Archiv</span>
+        </button>
+      </div>
+
+      <!-- Tab Content: Scrollbar -->
+      <div class="overflow-y-auto py-3 flex-1 text-xs space-y-2" id="adminTabContent">
+        <!-- Dynamisch -->
+      </div>
+
+      <!-- Admin Footer Aktionen -->
+      <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+        <button onclick="refreshLiveOrders()" class="text-emerald-800 font-bold flex items-center space-x-1">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          <span>Aktualisieren</span>
+        </button>
+        <button onclick="archiveCurrentOrders()" class="text-amber-800 hover:text-amber-950 font-bold flex items-center space-x-1 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1.5 rounded-xl transition">
+          <i data-lucide="archive" class="w-3.5 h-3.5"></i>
+          <span>Feier abschließen & archivieren</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FIREBASE SDK & APP LOGIK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { 
+      getFirestore, 
+      collection, 
+      addDoc, 
+      getDocs, 
+      deleteDoc, 
+      doc, 
+      serverTimestamp,
+      query,
+      where,
+      getDoc,
+      setDoc,
+      updateDoc
+    } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+    // Standard Firebase Config (dein Projekt)
+    const firebaseConfig = {
+      apiKey: "AIzaSyBcoYOQDqx9Coj5cbJfhbUMMPd-Qy0T06I",
+      authDomain: "fischbroetchen-65239.firebaseapp.com",
+      projectId: "fischbroetchen-65239",
+      storageBucket: "fischbroetchen-65239.firebasestorage.app",
+      messagingSenderId: "179788959848",
+      appId: "1:179788959848:web:8ac9f3d25eaaf6e3e82bdd"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const ORDERS_COL = "weihnachtsfeier_bestellungen";
+
+    window.db = db;
+    window.ORDERS_COL = ORDERS_COL;
+    window.addDoc = addDoc;
+    window.collection = collection;
+    window.getDocs = getDocs;
+    window.deleteDoc = deleteDoc;
+    window.doc = doc;
+    window.serverTimestamp = serverTimestamp;
+    window.query = query;
+    window.where = where;
+    window.getDoc = getDoc;
+    window.setDoc = setDoc;
+    window.updateDoc = updateDoc;
+
+    window.dispatchEvent(new CustomEvent("firebase-ready"));
+  </script>
+
+  <script>
+    const ADMIN_PIN = "9600";
+
+    // Standard-Beilagen aus deinem VBA-Code
+    const STANDARD_BEILAGEN = [
+      { name: "Pommes (inklusive)", price: 0 },
+      { name: "Twister", price: 2.00 },
+      { name: "Wedges", price: 2.00 },
+      { name: "Süßkartoffel-Pommes", price: 2.00 }
+    ];
+
+    // --- STAMMDATEN MATRIX (EXAKT AUS DEINEM VBA-CODE PORTIERT) ---
+    const DISHES = [
+      // KATEGORIE: Burger & Spezialburger
+      { id: 101, category: "Burger & Spezialburger", name: "Sun Burger", price: 9.90, hasBeilage: true },
+      { id: 102, category: "Burger & Spezialburger", name: "Lady Burger", price: 8.00, hasBeilage: true },
+      { id: 103, category: "Burger & Spezialburger", name: "Sun Cheese", price: 10.40, hasBeilage: true },
+      { id: 104, category: "Burger & Spezialburger", name: "Sun Double", price: 11.80, hasBeilage: true },
+      { id: 105, category: "Burger & Spezialburger", name: "Sun Double Cheese", price: 12.90, hasBeilage: true },
+      { id: 106, category: "Burger & Spezialburger", name: "Sun Louis", price: 11.80, hasBeilage: true },
+      { id: 107, category: "Burger & Spezialburger", name: "Sun Double Louis Style", price: 14.50, hasBeilage: true },
+      { id: 108, category: "Burger & Spezialburger", name: "H & S Burger", price: 11.50, hasBeilage: true },
+      { id: 109, category: "Burger & Spezialburger", name: "Sun Francis Burger", price: 11.60, hasBeilage: true },
+      { id: 110, category: "Burger & Spezialburger", name: "Chili Burger", price: 13.50, hasBeilage: true },
+      { id: 111, category: "Burger & Spezialburger", name: "Hawaii Burger", price: 11.60, hasBeilage: true },
+      { id: 112, category: "Burger & Spezialburger", name: "Chicken Burger", price: 12.20, hasBeilage: true },
+      { id: 113, category: "Burger & Spezialburger", name: "B & E Burger", price: 12.50, hasBeilage: true },
+      { id: 114, category: "Burger & Spezialburger", name: "Meggie Burger Veggie", price: 12.00, hasBeilage: true },
+      { id: 115, category: "Burger & Spezialburger", name: "Surf & Turf Burger", price: 14.50, hasBeilage: true },
+      { id: 116, category: "Burger & Spezialburger", name: "Tartufo Calabrese Burger", price: 14.50, hasBeilage: true },
+      { id: 117, category: "Burger & Spezialburger", name: "Camembert Burger", price: 11.90, hasBeilage: true },
+      { id: 118, category: "Burger & Spezialburger", name: "King of Bacon Burger", price: 14.50, hasBeilage: true },
+
+      // KATEGORIE: Schnitzelparty
+      { id: 201, category: "Schnitzelparty", name: "Kröstchen", price: 12.90, hasBeilage: true },
+      { id: 202, category: "Schnitzelparty", name: "Champignonrahmschnitzel", price: 12.90, hasBeilage: true },
+      { id: 203, category: "Schnitzelparty", name: "Zigeunerschnitzel", price: 12.90, hasBeilage: true },
+      { id: 204, category: "Schnitzelparty", name: "Hawaiischnitzel", price: 13.50, hasBeilage: true },
+      { id: 205, category: "Schnitzelparty", name: "Brauhausschnitzel", price: 14.50, hasBeilage: true },
+      { id: 206, category: "Schnitzelparty", name: "Zwiebelschnitzel", price: 14.30, hasBeilage: true },
+
+      // KATEGORIE: Klassiker & Tex Mex
+      { id: 301, category: "Klassiker & Tex Mex", name: "Portion Pommes Frites", price: 4.00 },
+      { id: 302, category: "Klassiker & Tex Mex", name: "Portion Twister / Wedges / Süßkartoffel", price: 6.00, variantsTitle: "Art der Pommes", variants: [{ name: "Twister", price: 0 }, { name: "Wedges", price: 0 }, { name: "Süßkartoffel-Pommes", price: 0 }] },
+      { id: 303, category: "Klassiker & Tex Mex", name: "Currywurst mit Pommes", price: 6.90, variantsTitle: "Schärfegrad", variants: [{ name: "Currywurst klassisch", price: 0 }, { name: "Currywurst scharf", price: 0 }] },
+      { id: 304, category: "Klassiker & Tex Mex", name: "Hot Dog mit Fritten", price: 7.90, hasBeilage: true },
+      { id: 305, category: "Klassiker & Tex Mex", name: "Hot Chili Dog mit Fritten", price: 9.90, hasBeilage: true },
+      { id: 306, category: "Klassiker & Tex Mex", name: "Hot Chili Cheesedog mit Fritten", price: 10.50, hasBeilage: true },
+      { id: 307, category: "Klassiker & Tex Mex", name: "1/2 Hähnchen Sonnenart", price: 9.00 },
+      { id: 308, category: "Klassiker & Tex Mex", name: "Hollo Bollo Auflauf", price: 11.50 },
+      { id: 309, category: "Klassiker & Tex Mex", name: "Kartoffelglück", price: 12.00 },
+      { id: 310, category: "Klassiker & Tex Mex", name: "Chicken Wings", price: 11.50 },
+      { id: 311, category: "Klassiker & Tex Mex", name: "Baked Potato", price: 8.50 },
+      { id: 312, category: "Klassiker & Tex Mex", name: "Chilibowl", price: 9.90 },
+      { id: 313, category: "Klassiker & Tex Mex", name: "Fajita", price: 11.50 },
+      { id: 314, category: "Klassiker & Tex Mex", name: "Nachos mit Salsa", price: 5.50 },
+      { id: 315, category: "Klassiker & Tex Mex", name: "Nachos mit warmer Käsesauce", price: 5.70 },
+      { id: 316, category: "Klassiker & Tex Mex", name: "Überbackene Nachos mit Salsa", price: 6.90 },
+
+      // KATEGORIE: Salate
+      { id: 401, category: "Salate", name: "Wald- & Wiesensalat", price: 12.90 },
+      { id: 402, category: "Salate", name: "Fresh & Spicy Salat", price: 14.50, variantsTitle: "Einlage", variants: [{ name: "mit Spargel & Garnelen", price: 0 }, { name: "mit Hühnerbrust", price: 0 }] },
+      { id: 403, category: "Salate", name: "Beilagensalat", price: 4.00 }
+    ];
+
+    // --- APP STATE ---
+    let userFirstName = localStorage.getItem("weihnacht_vorname") || "";
+    let userLastName = localStorage.getItem("weihnacht_nachname") || "";
+    let activeCategory = "Alle";
+    let cart = [];
+
+    let liveOrders = [];
+    let archivedOrders = [];
+    let currentAdminTab = "agg";
+
+    let currentDish = null;
+    let selectedVariant = null;
+    let selectedBeilage = null;
+    let selectedQuantity = 1;
+
+    let nextEventDateStr = "";
+    let nextEventDateFormatted = "";
+
+    window.addEventListener("DOMContentLoaded", () => {
+      initUser();
+      renderCategories();
+      renderDishes();
+      updateCartUI();
+      checkAdminStatus();
+      loadEventDate();
+      lucide.createIcons();
+    });
+
+    window.addEventListener("firebase-ready", () => {
+      loadEventDate();
+      checkAndLoadUserOrder();
+      if (sessionStorage.getItem("weihnacht_admin_authenticated") === "true") {
+        refreshLiveOrders();
+      }
+    });
+
+    // --- NUTZER-VERWALTUNG ---
+    function getFormattedUser() {
+      if (userLastName && userFirstName) {
+        return `${userLastName}, ${userFirstName}`;
+      }
+      return "";
+    }
+
+    function initUser() {
+      if (!userLastName || !userFirstName) {
+        editUserPrompt();
+      } else {
+        updateUserDisplay();
+      }
+    }
+
+    function editUserPrompt() {
+      document.getElementById("inputFirstName").value = userFirstName;
+      document.getElementById("inputLastName").value = userLastName;
+      document.getElementById("userModal").classList.remove("hidden");
+      lucide.createIcons();
+    }
+
+    function saveUserNames() {
+      const vName = document.getElementById("inputFirstName").value.trim();
+      const nName = document.getElementById("inputLastName").value.trim();
+
+      if (!vName || !nName) {
+        alert("Bitte trage Vor- und Nachnamen ein.");
+        return;
+      }
+
+      userFirstName = vName.charAt(0).toUpperCase() + vName.slice(1);
+      userLastName = nName.charAt(0).toUpperCase() + nName.slice(1);
+
+      localStorage.setItem("weihnacht_vorname", userFirstName);
+      localStorage.setItem("weihnacht_nachname", userLastName);
+
+      document.getElementById("userModal").classList.add("hidden");
+      updateUserDisplay();
+      checkAndLoadUserOrder();
+    }
+
+    function updateUserDisplay() {
+      const fullName = getFormattedUser();
+      document.getElementById("headerUserName").textContent = fullName || "Anmelden";
+      document.getElementById("cartUserName").textContent = fullName || "Unbekannt";
+    }
+
+    // --- ADMIN STEUERUNG (PIN 9600) ---
+    function checkAdminStatus() {
+      if (sessionStorage.getItem("weihnacht_admin_authenticated") === "true") {
+        document.getElementById("adminBadge").classList.remove("hidden");
+      }
+    }
+
+    function handleAdminTrigger() {
+      openAdminModal();
+    }
+
+    async function openAdminModal() {
+      if (!sessionStorage.getItem("weihnacht_admin_authenticated")) {
+        const enteredPin = prompt("Admin-PIN eingeben:");
+        if (enteredPin !== ADMIN_PIN) {
+          if (enteredPin !== null) alert("Falscher PIN! Zugriff verweigert.");
+          return;
+        }
+        sessionStorage.setItem("weihnacht_admin_authenticated", "true");
+      }
+
+      document.getElementById("adminBadge").classList.remove("hidden");
+      document.getElementById("adminModal").classList.remove("hidden");
+      lucide.createIcons();
+      await refreshLiveOrders();
+    }
+
+    function closeAdminModal() {
+      document.getElementById("adminModal").classList.add("hidden");
+    }
+
+    // --- KATEGORIEN & SPEISEN RENDERN ---
+    function renderCategories() {
+      const bar = document.getElementById("categoryBar");
+      const cats = ["Alle", "Burger & Spezialburger", "Schnitzelparty", "Klassiker & Tex Mex", "Salate"];
+      
+      bar.innerHTML = cats.map(cat => `
+        <button onclick="setCategory('${cat}')" 
+          class="px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-sm ${
+            activeCategory === cat 
+              ? 'bg-emerald-900 text-amber-200 scale-105 shadow border border-amber-400/40' 
+              : 'bg-white text-slate-700 hover:bg-amber-100/50 border border-slate-200/80'
+          }">
+          ${cat}
+        </button>
+      `).join("");
+    }
+
+    function setCategory(cat) {
+      activeCategory = cat;
+      renderCategories();
+      renderDishes();
+    }
+
+    function renderDishes() {
+      const container = document.getElementById("dishesList");
+      const filtered = activeCategory === "Alle" 
+        ? DISHES 
+        : DISHES.filter(d => d.category === activeCategory);
+
+      container.innerHTML = filtered.map(dish => {
+        let hint = "";
+        if (dish.hasBeilage) {
+          hint = "inkl. Pommes (Twister/Wedges/Süßkartoffel wählbar)";
+        } else if (dish.variants && dish.variants.length > 0) {
+          hint = dish.variants.map(v => v.name).join(" • ");
+        } else {
+          hint = "Standard-Portion";
+        }
+
+        return `
+          <div onclick="openConfigModal(${dish.id})" class="bg-white rounded-2xl p-4 shadow-sm border border-amber-900/10 hover:border-amber-400 hover:shadow-md active:scale-[0.99] transition cursor-pointer flex items-center justify-between">
+            <div class="flex-1 pr-3">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60">${dish.category}</span>
+              <h3 class="font-extrabold text-slate-900 text-base mt-1 leading-snug">${dish.name}</h3>
+              <p class="text-xs text-slate-400 mt-0.5">${hint}</p>
+            </div>
+            <div class="text-right flex flex-col items-end">
+              <span class="text-base font-black text-emerald-950">${formatEuro(dish.price)}</span>
+              <span class="mt-1 bg-amber-50 text-amber-800 p-1.5 rounded-xl flex items-center justify-center border border-amber-200/60">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+              </span>
+            </div>
+          </div>
+        `;
+      }).join("");
+      
+      lucide.createIcons();
+    }
+
+    // --- KONFIGURATOR MODAL ---
+    function openConfigModal(dishId) {
+      currentDish = DISHES.find(d => d.id === dishId);
+      if (!currentDish) return;
+
+      selectedVariant = (currentDish.variants && currentDish.variants.length > 0) ? currentDish.variants[0] : null;
+      selectedBeilage = currentDish.hasBeilage ? STANDARD_BEILAGEN[0] : null;
+      selectedQuantity = 1;
+
+      document.getElementById("modalDishCategory").textContent = currentDish.category;
+      document.getElementById("modalDishName").textContent = currentDish.name;
+      document.getElementById("modalDishBasePrice").textContent = "Basispreis: " + formatEuro(currentDish.price);
+      document.getElementById("modalQuantity").textContent = selectedQuantity;
+
+      // Varianten Container (z.B. Currywurst scharf / klassisch)
+      const opt1Container = document.getElementById("opt1Container");
+      if (currentDish.variants && currentDish.variants.length > 0) {
+        opt1Container.classList.remove("hidden");
+        document.getElementById("opt1Title").textContent = currentDish.variantsTitle || "Variante wählen";
+        const opt1Box = document.getElementById("opt1Options");
+        opt1Box.innerHTML = currentDish.variants.map((v, i) => `
+          <button type="button" onclick="selectVariantOpt(${i})" id="opt_var_btn_${i}" 
+            class="p-2.5 rounded-xl border text-xs font-bold text-left transition flex items-center justify-between ${
+              i === 0 ? 'border-emerald-600 bg-emerald-50 text-emerald-950' : 'border-slate-200 bg-white text-slate-700'
+            }">
+            <span>${v.name}</span>
+            ${v.price > 0 ? `<span class="text-emerald-700">+${formatEuro(v.price)}</span>` : ''}
+          </button>
+        `).join("");
+      } else {
+        opt1Container.classList.add("hidden");
+      }
+
+      // Beilagen Container (Burger / Schnitzel / Dogs)
+      const opt2Container = document.getElementById("opt2Container");
+      if (currentDish.hasBeilage) {
+        opt2Container.classList.remove("hidden");
+        document.getElementById("opt2Title").textContent = "Beilage wählen";
+        const opt2Box = document.getElementById("opt2Options");
+        opt2Box.innerHTML = STANDARD_BEILAGEN.map((b, i) => `
+          <button type="button" onclick="selectBeilageOpt(${i})" id="opt_bei_btn_${i}" 
+            class="p-2.5 rounded-xl border text-xs font-bold text-left transition flex items-center justify-between ${
+              i === 0 ? 'border-emerald-600 bg-emerald-50 text-emerald-950' : 'border-slate-200 bg-white text-slate-700'
+            }">
+            <span>${b.name}</span>
+            ${b.price > 0 ? `<span class="text-amber-800 font-black">+${formatEuro(b.price)}</span>` : '<span class="text-slate-400 font-normal">inkl.</span>'}
+          </button>
+        `).join("");
+      } else {
+        opt2Container.classList.add("hidden");
+      }
+
+      updateConfigCalculatedSum();
+      document.getElementById("itemConfigModal").classList.remove("hidden");
+    }
+
+    function selectVariantOpt(idx) {
+      selectedVariant = currentDish.variants[idx];
+      currentDish.variants.forEach((_, i) => {
+        const el = document.getElementById(`opt_var_btn_${i}`);
+        if (el) {
+          el.className = (i === idx) 
+            ? "p-2.5 rounded-xl border text-xs font-bold text-left transition flex items-center justify-between border-emerald-600 bg-emerald-50 text-emerald-950"
+            : "p-2.5 rounded-xl border text-xs font-bold text-left transition flex items-center justify-between border-slate-200 bg-white text-slate-700";
+        }
+      });
+      updateConfigCalculatedSum();
+    }
+
+    function selectBeilageOpt(idx) {
+      selectedBeilage = STANDARD_BEILAGEN[idx];
+      STANDARD_BEILAGEN.forEach((_, i) => {
+        const el = document.getElementById(`opt_bei_btn_${i}`);
+        if (el) {
+          el.className = (i === idx) 
+            ? "p-2.5 rounded-xl border text-xs font-bold text-left transition flex items-center justify-between border-emerald-600 bg-emerald-50 text-emerald-950"
+            : "p-2.5 rounded-xl border text-xs font-bold text-left transition flex items-center justify-between border-slate-200 bg-white text-slate-700";
+        }
+      });
+      updateConfigCalculatedSum();
+    }
+
+    function adjustQuantity(delta) {
+      selectedQuantity = Math.max(1, Math.min(20, selectedQuantity + delta));
+      document.getElementById("modalQuantity").textContent = selectedQuantity;
+      updateConfigCalculatedSum();
+    }
+
+    function updateConfigCalculatedSum() {
+      const varPrice = selectedVariant ? selectedVariant.price : 0;
+      const beiPrice = selectedBeilage ? selectedBeilage.price : 0;
+      const singlePrice = currentDish.price + varPrice + beiPrice;
+      const total = singlePrice * selectedQuantity;
+      document.getElementById("modalCalculatedSum").textContent = formatEuro(total);
+    }
+
+    function closeConfigModal() {
+      document.getElementById("itemConfigModal").classList.add("hidden");
+      currentDish = null;
+    }
+
+    function addCurrentItemToCart() {
+      if (!currentDish) return;
+      
+      const varPrice = selectedVariant ? selectedVariant.price : 0;
+      const beiPrice = selectedBeilage ? selectedBeilage.price : 0;
+      const singlePrice = currentDish.price + varPrice + beiPrice;
+
+      let detailParts = [];
+      if (selectedVariant) detailParts.push(selectedVariant.name);
+      if (selectedBeilage) detailParts.push(selectedBeilage.name);
+      const detailDesc = detailParts.length > 0 ? detailParts.join(" | ") : "Standard";
+
+      cart.push({
+        id: Date.now(),
+        dishName: currentDish.name,
+        details: detailDesc,
+        quantity: selectedQuantity,
+        singlePrice: singlePrice,
+        totalPrice: singlePrice * selectedQuantity
+      });
+
+      closeConfigModal();
+      updateCartUI();
+    }
+
+    function removeCartItem(idx) {
+      cart.splice(idx, 1);
+      updateCartUI();
+      renderCartList();
+    }
+
+    function updateCartUI() {
+      const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+      const total = cart.reduce((sum, item) => sum + item.totalPrice, 0);
+
+      document.getElementById("cartBadge").textContent = count;
+      document.getElementById("cartTotalSum").textContent = formatEuro(total);
+      document.getElementById("cartModalTotal").textContent = formatEuro(total);
+    }
+
+    function toggleCartModal(show) {
+      const modal = document.getElementById("cartModal");
+      if (show) {
+        if (!getFormattedUser()) editUserPrompt();
+        renderCartList();
+        modal.classList.remove("hidden");
+      } else {
+        modal.classList.add("hidden");
+      }
+    }
+
+    function renderCartList() {
+      const container = document.getElementById("cartItemsList");
+      if (cart.length === 0) {
+        container.innerHTML = `
+          <div class="py-8 text-center text-slate-400">
+            <i data-lucide="utensils" class="w-10 h-10 mx-auto mb-2 opacity-30"></i>
+            <p class="text-xs font-semibold">Dein Festtags-Warenkorb ist noch leer</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = cart.map((item, idx) => `
+        <div class="py-2.5 flex items-center justify-between text-xs">
+          <div class="flex-1 pr-2">
+            <div class="flex items-center space-x-1.5">
+              <span class="font-black text-emerald-950 bg-emerald-100 px-1.5 py-0.5 rounded text-[11px]">${item.quantity}x</span>
+              <span class="font-black text-slate-800 text-sm">${item.dishName}</span>
+            </div>
+            <p class="text-slate-500 text-[11px] mt-0.5">${item.details}</p>
+          </div>
+          <div class="flex items-center space-x-3">
+            <span class="font-black text-slate-900 text-sm">${formatEuro(item.totalPrice)}</span>
+            <button onclick="removeCartItem(${idx})" class="text-red-400 hover:text-red-600 p-1">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      `).join("");
+
+      lucide.createIcons();
+    }
+
+    // --- BESTELLUNG ABSCHICKEN (IN FIREBASE SPEICHERN) ---
+    async function submitOrder() {
+      if (cart.length === 0) {
+        alert("Bitte lege zuerst ein Gericht in den Warenkorb.");
+        return;
+      }
+      
+      const currentUser = getFormattedUser();
+      if (!currentUser) {
+        editUserPrompt();
+        return;
+      }
+
+      const total = cart.reduce((sum, item) => sum + item.totalPrice, 0);
+      const submitBtn = document.getElementById("btnSubmitOrder");
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span>Wird gebucht...</span>`;
+
+      try {
+        if (window.db && window.addDoc) {
+          const orderDoc = {
+            besteller: currentUser,
+            gesamtpreis: total,
+            artikel: cart.map(i => ({
+              speise: i.dishName,
+              details: i.details,
+              menge: i.quantity,
+              einzelpreis: i.singlePrice,
+              gesamt: i.totalPrice
+            })),
+            erstelltAm: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString(),
+            status: "offen",
+            bezahlt: false,
+            archiviert: false,
+            terminDatum: nextEventDateFormatted || "Weihnachtsfeier"
+          };
+          
+          await window.addDoc(window.collection(window.db, window.ORDERS_COL), orderDoc);
+        }
+      } catch (err) {
+        console.error("Fehler beim Speichern:", err);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<i data-lucide="check-circle" class="w-5 h-5 text-amber-300"></i><span>Verbindlich vorbestellen</span>`;
+      }
+
+      toggleCartModal(false);
+
+      const successModal = document.getElementById("successModal");
+      document.getElementById("successModalSubtitle").textContent = `Bestellung für ${currentUser} erfolgreich gespeichert!`;
+      document.getElementById("successModalAmount").textContent = formatEuro(total);
+      successModal.classList.remove("hidden");
+      lucide.createIcons();
+    }
+
+    function finishOrderAndReload() {
+      cart = [];
+      updateCartUI();
+      document.getElementById("successModal").classList.add("hidden");
+      checkAndLoadUserOrder();
+    }
+
+    // --- TERMIN & EIGENE BESTELLUNG LADEN ---
+    function formatGermanDate(isoStr) {
+      if (!isoStr) return "Weihnachtsfeier";
+      const parts = isoStr.split("-");
+      if (parts.length !== 3) return isoStr;
+      const d = new Date(parts[0], parts[1] - 1, parts[2]);
+      const options = { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' };
+      return d.toLocaleDateString('de-DE', options);
+    }
+
+    async function loadEventDate() {
+      nextEventDateStr = "2026-12-18"; // Vorbelegung für Weihnachtsfeier
+      if (window.db && window.getDoc && window.doc) {
+        try {
+          const docRef = window.doc(window.db, "einstellungen", "weihnachtsfeier_termin");
+          const snap = await window.getDoc(docRef);
+          if (snap.exists() && snap.data().datum) {
+            nextEventDateStr = snap.data().datum;
+          }
+        } catch (err) {
+          console.warn("Termin konnte nicht geladen werden:", err);
+        }
+      }
+      applyEventDateUI();
+    }
+
+    function applyEventDateUI() {
+      nextEventDateFormatted = formatGermanDate(nextEventDateStr);
+      const headerDateEl = document.getElementById("headerEventDate");
+      if (headerDateEl) headerDateEl.textContent = nextEventDateFormatted;
+
+      const adminDisplay = document.getElementById("adminCurrentDateDisplay");
+      if (adminDisplay) adminDisplay.textContent = nextEventDateFormatted;
+
+      const adminInput = document.getElementById("adminDateInput");
+      if (adminInput && nextEventDateStr) adminInput.value = nextEventDateStr;
+
+      const bannerText = document.getElementById("statusBannerText");
+      if (bannerText) {
+        bannerText.innerHTML = `Speisenvorbestellung für unsere Weihnachtsfeier am <span class="font-black text-emerald-950">${nextEventDateFormatted}</span> geöffnet! 🎄`;
+      }
+    }
+
+    async function saveEventDateFromAdmin() {
+      const input = document.getElementById("adminDateInput");
+      if (!input || !input.value) return;
+
+      nextEventDateStr = input.value;
+      if (window.db && window.setDoc && window.doc) {
+        try {
+          await window.setDoc(window.doc(window.db, "einstellungen", "weihnachtsfeier_termin"), {
+            datum: nextEventDateStr,
+            aktualisiertAm: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString()
+          });
+          applyEventDateUI();
+          alert("Datum der Weihnachtsfeier erfolgreich gespeichert:
+" + formatGermanDate(nextEventDateStr));
+        } catch (err) {
+          alert("Fehler beim Speichern: " + err.message);
+        }
+      }
+    }
+
+    let myCurrentOrderDoc = null;
+
+    async function checkAndLoadUserOrder() {
+      const currentUser = getFormattedUser();
+      const card = document.getElementById("userOrderCard");
+      if (!currentUser || !window.db || !window.getDocs || !window.query || !window.where) {
+        if (card) card.classList.add("hidden");
+        return;
+      }
+
+      try {
+        const q = window.query(
+          window.collection(window.db, window.ORDERS_COL),
+          window.where("besteller", "==", currentUser)
+        );
+        const snap = await window.getDocs(q);
+
+        let docs = [];
+        snap.forEach(d => {
+          const data = d.data();
+          if (!data.archiviert) {
+            docs.push({ id: d.id, ...data });
+          }
+        });
+
+        if (docs.length === 0) {
+          myCurrentOrderDoc = null;
+          card.classList.add("hidden");
+          return;
+        }
+
+        myCurrentOrderDoc = docs[docs.length - 1];
+
+        const list = document.getElementById("userOrderItemsList");
+        list.innerHTML = (myCurrentOrderDoc.artikel || []).map(a => `
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="font-extrabold text-slate-900">${a.menge}x ${a.speise}</span>
+              <p class="text-[11px] text-slate-500">${a.details || "Standard"}</p>
+            </div>
+            <span class="font-black text-emerald-950">${formatEuro(a.gesamt || 0)}</span>
+          </div>
+        `).join("");
+
+        document.getElementById("userOrderTotal").textContent = formatEuro(myCurrentOrderDoc.gesamtpreis || 0);
+        card.classList.remove("hidden");
+        lucide.createIcons();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function cancelAndEditOrder() {
+      if (!myCurrentOrderDoc) return;
+
+      const ok = confirm("Möchtest du diese Bestellung zur Bearbeitung in den Warenkorb zurückholen? Der alte Eintrag wird dabei storniert.");
+      if (!ok) return;
+
+      try {
+        cart = (myCurrentOrderDoc.artikel || []).map(a => ({
+          id: Date.now() + Math.random(),
+          dishName: a.speise,
+          details: a.details,
+          quantity: a.menge,
+          singlePrice: a.einzelpreis,
+          totalPrice: a.gesamt
+        }));
+
+        if (window.db && window.deleteDoc && window.doc) {
+          await window.deleteDoc(window.doc(window.db, window.ORDERS_COL, myCurrentOrderDoc.id));
+        }
+
+        myCurrentOrderDoc = null;
+        updateCartUI();
+        document.getElementById("userOrderCard").classList.add("hidden");
+        toggleCartModal(true);
+      } catch (err) {
+        alert("Fehler beim Zurückholen: " + err.message);
+      }
+    }
+
+    // --- ADMIN MODAL AUSWERTUNG ---
+    function switchAdminTab(tab) {
+      currentAdminTab = tab;
+      const aggBtn = document.getElementById("tabAggBtn");
+      const usersBtn = document.getElementById("tabUsersBtn");
+      const histBtn = document.getElementById("tabHistoryBtn");
+
+      [aggBtn, usersBtn, histBtn].forEach(b => {
+        if (b) b.className = "px-2.5 py-1.5 border-b-2 border-transparent text-slate-500 font-bold whitespace-nowrap flex items-center space-x-1";
+      });
+
+      if (tab === "agg") {
+        aggBtn.className = "px-2.5 py-1.5 border-b-2 border-emerald-900 text-emerald-900 font-black whitespace-nowrap flex items-center space-x-1";
+      } else if (tab === "users") {
+        usersBtn.className = "px-2.5 py-1.5 border-b-2 border-emerald-900 text-emerald-900 font-black whitespace-nowrap flex items-center space-x-1";
+      } else if (tab === "history") {
+        histBtn.className = "px-2.5 py-1.5 border-b-2 border-emerald-900 text-emerald-900 font-black whitespace-nowrap flex items-center space-x-1";
+      }
+      renderAdminContent();
+    }
+
+    async function refreshLiveOrders() {
+      if (!window.db || !window.getDocs) return;
+      const content = document.getElementById("adminTabContent");
+      content.innerHTML = `<p class="text-center text-slate-400 py-6">Lade Bestellungen...</p>`;
+
+      try {
+        const snap = await window.getDocs(window.collection(window.db, window.ORDERS_COL));
+        liveOrders = [];
+        archivedOrders = [];
+
+        snap.forEach(d => {
+          const ord = { id: d.id, ...d.data() };
+          if (ord.archiviert === true) {
+            archivedOrders.push(ord);
+          } else {
+            liveOrders.push(ord);
+          }
+        });
+
+        calculateAdminStats();
+        renderAdminContent();
+      } catch (err) {
+        content.innerHTML = `<p class="text-center text-red-500 py-4">Fehler beim Laden: ${err.message}</p>`;
+      }
+    }
+
+    function calculateAdminStats() {
+      const totalOrders = liveOrders.length;
+      let totalRev = 0;
+      let paidOrders = 0;
+
+      liveOrders.forEach(o => {
+        const price = Number(o.gesamtpreis) || 0;
+        totalRev += price;
+        if (o.bezahlt === true) paidOrders++;
+      });
+
+      document.getElementById("adminTotalOrders").textContent = totalOrders;
+      const paidSummaryEl = document.getElementById("adminPaidSummary");
+      if (paidSummaryEl) paidSummaryEl.textContent = `${paidOrders} / ${totalOrders}`;
+
+      const totalRevEl = document.getElementById("adminTotalRevenue");
+      if (totalRevEl) totalRevEl.textContent = formatEuro(totalRev);
+    }
+
+    function renderAdminContent() {
+      const content = document.getElementById("adminTabContent");
+
+      if (currentAdminTab === "agg") {
+        if (liveOrders.length === 0) {
+          content.innerHTML = `<p class="text-center text-slate-400 py-8">Noch keine Bestellungen für diese Feier vorhanden.</p>`;
+          return;
+        }
+
+        const dishesMap = {};
+        liveOrders.forEach(o => {
+          (o.artikel || []).forEach(a => {
+            const dishName = a.speise;
+            const details = (a.details || "").trim();
+            const menge = Number(a.menge) || 1;
+            const summe = Number(a.gesamt) || 0;
+
+            if (!dishesMap[dishName]) {
+              dishesMap[dishName] = { total: 0, summe: 0, variants: {} };
+            }
+
+            dishesMap[dishName].total += menge;
+            dishesMap[dishName].summe += summe;
+
+            const varKey = (!details || details === "Standard") ? "" : details;
+            if (varKey) {
+              dishesMap[dishName].variants[varKey] = (dishesMap[dishName].variants[varKey] || 0) + menge;
+            }
+          });
+        });
+
+        const sortedDishes = Object.keys(dishesMap).sort();
+
+        content.innerHTML = `
+          <div class="space-y-1.5">
+            ${sortedDishes.map(dName => {
+              const item = dishesMap[dName];
+              const varKeys = Object.keys(item.variants).sort();
+              const variantText = varKeys.length > 0 
+                ? varKeys.map(vk => `${item.variants[vk]}x ${vk}`).join(", ") 
+                : "Standard";
+
+              return `
+                <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+                  <div>
+                    <span class="font-extrabold text-slate-900 text-sm">${item.total}x ${dName}</span>
+                    <p class="text-[11px] text-slate-500 font-medium">${variantText}</p>
+                  </div>
+                  <span class="font-black text-emerald-950">${formatEuro(item.summe)}</span>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        `;
+      } else if (currentAdminTab === "users") {
+        if (liveOrders.length === 0) {
+          content.innerHTML = `<p class="text-center text-slate-400 py-8">Noch keine Bestellungen vorhanden.</p>`;
+          return;
+        }
+
+        content.innerHTML = `
+          <div class="space-y-2.5">
+            ${liveOrders.map(o => {
+              const isPaid = (o.bezahlt === true);
+              return `
+                <div class="p-3 bg-white rounded-2xl border ${isPaid ? 'border-emerald-300 bg-emerald-50/20' : 'border-slate-200 shadow-sm'} transition">
+                  <div class="flex justify-between items-center border-b border-slate-100 pb-2 mb-2">
+                    <div>
+                      <span class="font-black text-slate-900 text-sm">${o.besteller}</span>
+                      <span class="text-xs font-black text-emerald-950 ml-2">${formatEuro(o.gesamtpreis || 0)}</span>
+                    </div>
+
+                    <div class="flex items-center space-x-1.5">
+                      <button type="button" onclick="togglePaymentStatus('${o.id}', ${!isPaid})" 
+                        class="px-2.5 py-1 rounded-xl text-xs font-black flex items-center space-x-1.5 transition active:scale-95 ${
+                          isPaid 
+                            ? 'bg-emerald-600 text-white shadow-sm hover:bg-emerald-700' 
+                            : 'bg-amber-100 text-amber-900 hover:bg-amber-200 border border-amber-300'
+                        }">
+                        <i data-lucide="${isPaid ? 'check-circle-2' : 'circle'}" class="w-3.5 h-3.5"></i>
+                        <span>${isPaid ? 'Bezahlt ✓' : 'Offen'}</span>
+                      </button>
+
+                      <button type="button" onclick="deleteSingleOrder('${o.id}', '${o.besteller.replace(/'/g, "\'")}', '${formatEuro(o.gesamtpreis || 0)}')" 
+                        class="p-1.5 rounded-xl text-red-500 hover:bg-red-100 hover:text-red-700 transition active:scale-90" title="Diese Bestellung löschen">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <ul class="space-y-1 text-slate-600 text-[11px]">
+                    ${(o.artikel || []).map(a => `
+                      <li class="flex items-start justify-between">
+                        <div>
+                          <span class="font-bold text-slate-800">${a.menge}x ${a.speise}</span>
+                          <span class="text-slate-400 block text-[10px]">${a.details || "Standard"}</span>
+                        </div>
+                        <span class="font-semibold text-slate-500">${formatEuro(a.gesamt || 0)}</span>
+                      </li>
+                    `).join("")}
+                  </ul>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        `;
+        lucide.createIcons();
+      } else if (currentAdminTab === "history") {
+        if (archivedOrders.length === 0) {
+          content.innerHTML = `
+            <div class="text-center py-8 text-slate-400 space-y-2">
+              <i data-lucide="archive" class="w-10 h-10 mx-auto opacity-30"></i>
+              <p class="font-semibold text-xs">Das Archiv ist aktuell noch leer.</p>
+              <p class="text-[11px] text-slate-400">Vergangene Feiern werden hier sicher aufbewahrt.</p>
+            </div>
+          `;
+          lucide.createIcons();
+          return;
+        }
+
+        const byTermin = {};
+        archivedOrders.forEach(o => {
+          const tKey = o.terminDatum || "Vergangene Weihnachtsfeier";
+          if (!byTermin[tKey]) byTermin[tKey] = [];
+          byTermin[tKey].push(o);
+        });
+
+        const sortedTermine = Object.keys(byTermin).reverse();
+
+        content.innerHTML = `
+          <div class="space-y-4">
+            ${sortedTermine.map(tName => {
+              const termOrders = byTermin[tName];
+              const tCount = termOrders.length;
+              const tSum = termOrders.reduce((s, o) => s + (Number(o.gesamtpreis) || 0), 0);
+
+              return `
+                <div class="bg-amber-50/50 border border-amber-200 rounded-2xl p-3 text-xs">
+                  <div class="flex justify-between items-center pb-2 border-b border-amber-200">
+                    <div>
+                      <span class="font-black text-emerald-950 text-sm flex items-center space-x-1">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-600"></i>
+                        <span>${tName}</span>
+                      </span>
+                      <p class="text-[10px] text-slate-500 font-semibold">${tCount} Besteller • Gesamt: ${formatEuro(tSum)}</p>
+                    </div>
+                  </div>
+
+                  <div class="mt-2 space-y-1.5">
+                    ${termOrders.map(o => `
+                      <div class="p-2 bg-white rounded-xl border border-slate-200/80">
+                        <div class="flex justify-between items-center">
+                          <span class="font-bold text-slate-900">${o.besteller}</span>
+                          <span class="font-black text-emerald-950">${formatEuro(o.gesamtpreis || 0)}</span>
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-0.5">
+                          ${(o.artikel || []).map(a => `${a.menge}x ${a.speise} (${a.details || 'Standard'})`).join(', ')}
+                        </p>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+        lucide.createIcons();
+      }
+    }
+
+    async function togglePaymentStatus(orderId, newStatus) {
+      if (!window.db || !window.updateDoc || !window.doc) return;
+      try {
+        const ord = liveOrders.find(o => o.id === orderId);
+        if (ord) ord.bezahlt = newStatus;
+        calculateAdminStats();
+        renderAdminContent();
+
+        await window.updateDoc(window.doc(window.db, window.ORDERS_COL, orderId), {
+          bezahlt: newStatus
+        });
+      } catch (err) {
+        alert("Konnte Status nicht aktualisieren: " + err.message);
+      }
+    }
+
+    // --- WHATSAPP EXPORT AN DAS RESTAURANT ---
+    function sendWhatsAppToVendor() {
+      if (liveOrders.length === 0) {
+        alert("Keine Bestellungen zur Übertragung vorhanden.");
+        return;
+      }
+
+      const dishesMap = {};
+      let totalPieces = 0;
+      let grandTotal = 0;
+
+      liveOrders.forEach(o => {
+        grandTotal += Number(o.gesamtpreis) || 0;
+        (o.artikel || []).forEach(a => {
+          const dishName = a.speise;
+          const details = (a.details || "").trim();
+          const menge = Number(a.menge) || 1;
+
+          if (!dishesMap[dishName]) {
+            dishesMap[dishName] = { total: 0, variants: {} };
+          }
+
+          dishesMap[dishName].total += menge;
+          totalPieces += menge;
+
+          const varKey = (!details || details === "Standard") ? "" : details;
+          if (varKey) {
+            dishesMap[dishName].variants[varKey] = (dishesMap[dishName].variants[varKey] || 0) + menge;
+          }
+        });
+      });
+
+      const dateHeading = nextEventDateFormatted || "Weihnachtsfeier";
+      let text = `🎄 *Vorbestellung Weihnachtsfeier* 🎄
+
+`;
+      text += `Hallo! Hier ist unsere Essensvorbestellung für *${dateHeading}*:
+
+`;
+
+      Object.keys(dishesMap).sort().forEach(dishName => {
+        const item = dishesMap[dishName];
+        const varKeys = Object.keys(item.variants).sort();
+
+        text += `• *${item.total}x* ${dishName}
+`;
+        if (varKeys.length > 0) {
+          varKeys.forEach(vk => {
+            text += `   ${item.variants[vk]}x ${vk}
+`;
+          });
+        }
+      });
+
+      text += `
+🎁 *Gesamt:* ${totalPieces} Gerichte (${formatEuro(grandTotal)})
+`;
+      text += `Vielen Dank und schöne Grüße!`;
+
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+    }
+
+    async function deleteSingleOrder(orderId, bestellerName, betragStr) {
+      if (!confirm(`Bestellung von "${bestellerName}" (${betragStr}) wirklich löschen?`)) return;
+      if (!window.db || !window.deleteDoc || !window.doc) return;
+
+      try {
+        await window.deleteDoc(window.doc(window.db, window.ORDERS_COL, orderId));
+        liveOrders = liveOrders.filter(o => o.id !== orderId);
+        calculateAdminStats();
+        renderAdminContent();
+        checkAndLoadUserOrder();
+      } catch (err) {
+        alert("Löschen fehlgeschlagen: " + err.message);
+      }
+    }
+
+    async function archiveCurrentOrders() {
+      if (liveOrders.length === 0) {
+        alert("Keine offenen Bestellungen zum Archivieren.");
+        return;
+      }
+
+      if (!confirm(`Möchtest du die ${liveOrders.length} Bestellungen dieser Feier archivieren?`)) return;
+      if (!window.db || !window.updateDoc || !window.doc) return;
+
+      try {
+        const terminName = nextEventDateFormatted || "Weihnachtsfeier";
+        for (const ord of liveOrders) {
+          await window.updateDoc(window.doc(window.db, window.ORDERS_COL, ord.id), {
+            archiviert: true,
+            archiviertAm: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString(),
+            terminDatum: terminName
+          });
+        }
+        alert("Bestellungen wurden erfolgreich archiviert!");
+        await refreshLiveOrders();
+        checkAndLoadUserOrder();
+      } catch (err) {
+        alert("Archivieren fehlgeschlagen: " + err.message);
+      }
+    }
+
+    function formatEuro(val) {
+      return (Number(val) || 0).toLocaleString("de-DE", { style: "currency", currency: "EUR" });
+    }
+
+    // Globale Zuordnungen
+    window.handleAdminTrigger = handleAdminTrigger;
+    window.openAdminModal = openAdminModal;
+    window.closeAdminModal = closeAdminModal;
+    window.switchAdminTab = switchAdminTab;
+    window.refreshLiveOrders = refreshLiveOrders;
+    window.sendWhatsAppToVendor = sendWhatsAppToVendor;
+    window.archiveCurrentOrders = archiveCurrentOrders;
+    window.deleteSingleOrder = deleteSingleOrder;
+    window.editUserPrompt = editUserPrompt;
+    window.saveUserNames = saveUserNames;
+    window.setCategory = setCategory;
+    window.openConfigModal = openConfigModal;
+    window.closeConfigModal = closeConfigModal;
+    window.selectVariantOpt = selectVariantOpt;
+    window.selectBeilageOpt = selectBeilageOpt;
+    window.adjustQuantity = adjustQuantity;
+    window.addCurrentItemToCart = addCurrentItemToCart;
+    window.removeCartItem = removeCartItem;
+    window.toggleCartModal = toggleCartModal;
+    window.submitOrder = submitOrder;
+    window.finishOrderAndReload = finishOrderAndReload;
+    window.cancelAndEditOrder = cancelAndEditOrder;
+    window.checkAndLoadUserOrder = checkAndLoadUserOrder;
+    window.saveEventDateFromAdmin = saveEventDateFromAdmin;
+    window.togglePaymentStatus = togglePaymentStatus;
+  </script>
+</body>
+</html>
