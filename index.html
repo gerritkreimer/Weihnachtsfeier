@@ -500,8 +500,8 @@
     ];
 
     // --- APP STATE ---
-    let userFirstName = localStorage.getItem("weihnacht_vorname") || "Santa";
-    let userLastName = localStorage.getItem("weihnacht_nachname") || "Claus";
+    let userFirstName = localStorage.getItem("weihnacht_vorname") || "";
+    let userLastName = localStorage.getItem("weihnacht_nachname") || "";
     let activeCategory = "Alle";
     let cart = [];
 
@@ -552,8 +552,8 @@
     }
 
     function editUserPrompt() {
-      document.getElementById("inputFirstName").value = userFirstName;
-      document.getElementById("inputLastName").value = userLastName;
+      document.getElementById("inputFirstName").value = userFirstName || "Santa";
+      document.getElementById("inputLastName").value = userLastName || "Claus";
       document.getElementById("userModal").classList.remove("hidden");
       lucide.createIcons();
     }
