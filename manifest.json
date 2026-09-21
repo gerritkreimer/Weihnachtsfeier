@@ -1,16 +1,28 @@
 {
   "name": "Weihnachtsessen",
-  "short_name": "Weihnachtsessen",
-  "start_url": "./",
+  "short_name": "Weihnachten",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0a2117",
   "theme_color": "#1b4332",
   "icons": [
     {
+      "src": "icon.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
       "src": "Icon.png",
       "sizes": "192x192 512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }
