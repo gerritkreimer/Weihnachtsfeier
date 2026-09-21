@@ -12,16 +12,31 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     * { -webkit-tap-highlight-color: transparent; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-attachment: fixed;
+    }
     .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1rem); }
-    /* Subtiler Schneefall-Effekt im Header */
-    .snow-bg {
-      background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08) 1px, transparent 1px);
-      background-size: 24px 24px;
+    .gold-glow {
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.18);
+    }
+    .festive-card {
+      background: linear-gradient(135deg, rgba(16, 44, 33, 0.85) 0%, rgba(10, 31, 23, 0.92) 100%);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .festive-border {
+      border: 1px solid rgba(245, 158, 11, 0.28);
+    }
+    .festive-border:hover {
+      border-color: rgba(245, 158, 11, 0.65);
     }
   </style>
 </head>
-<body class="bg-amber-50/40 text-slate-800 min-h-screen flex flex-col pb-24 select-none">
+<body class="bg-gradient-to-b from-[#0a2117] via-[#0f2e21] to-[#071710] text-slate-100 min-h-screen flex flex-col pb-24 select-none relative overflow-x-hidden">
+  <!-- Animierter Schneefall Canvas (leichtgewichtig, performant & klick-durchlässig) -->
+  <canvas id="snowCanvas" class="fixed inset-0 pointer-events-none z-10"></canvas>
+
 
   <!-- Header: Festliches Tannengrün & Gold -->
   <header class="bg-gradient-to-r from-emerald-950 via-green-900 to-emerald-950 text-white px-4 py-4 sticky top-0 z-30 shadow-md snow-bg border-b border-amber-500/30">
@@ -56,7 +71,7 @@
   <main class="max-w-md mx-auto w-full px-3 pt-3 flex-1">
 
     <!-- Status Banner: Dynamische Ampel -->
-    <div id="shopStatusBanner" class="mb-3 rounded-xl p-3 flex items-center space-x-3 text-xs shadow-sm border transition-colors duration-300 bg-emerald-50 border-emerald-300 text-emerald-950">
+    <div id="shopStatusBanner" class="mb-3 rounded-2xl p-3.5 flex items-center space-x-3 text-xs shadow-lg border transition-all duration-300 festive-card festive-border text-emerald-100 gold-glow relative z-20">
       <div id="statusDot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping flex-shrink-0"></div>
       <div id="statusBannerText" class="flex-1 font-medium">
         Speisenauswahl für unsere <span class="font-black text-emerald-950">Weihnachtsfeier</span> geöffnet!
@@ -64,11 +79,11 @@
     </div>
 
     <!-- Meine aktuelle Bestellung Card (Erscheint nur wenn Bestellung vorliegt) -->
-    <div id="userOrderCard" class="hidden mb-3 bg-white border-2 border-amber-500 rounded-2xl p-4 shadow-md">
+    <div id="userOrderCard" class="hidden mb-3 festive-card border-2 border-amber-400/80 rounded-2xl p-4 shadow-xl gold-glow relative z-20 text-slate-100">
       <div class="flex items-center justify-between pb-2 border-b border-amber-100">
         <div class="flex items-center space-x-1.5 text-emerald-950">
           <i data-lucide="gift" class="w-4 h-4 text-amber-600"></i>
-          <span class="text-xs font-black uppercase tracking-wider">Deine Festtags-Auswahl</span>
+          <span class="text-xs font-black uppercase tracking-wider text-amber-200">Deine Festtags-Auswahl</span>
         </div>
         <span id="userOrderStatusBadge" class="text-[10px] font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">Gebucht</span>
       </div>
@@ -80,7 +95,7 @@
       <div class="pt-2 border-t border-amber-100 flex items-center justify-between">
         <div>
           <span class="text-[11px] text-slate-400 font-semibold">Gesamtsumme</span>
-          <p id="userOrderTotal" class="text-base font-black text-emerald-950">0,00 €</p>
+          <p id="userOrderTotal" class="text-lg font-black text-amber-300">0,00 €</p>
         </div>
         <button id="btnCancelOrEditOrder" onclick="cancelAndEditOrder()" class="bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold px-3 py-1.5 rounded-xl text-xs flex items-center space-x-1 transition active:scale-95 border border-amber-300">
           <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
@@ -102,23 +117,23 @@
 
   </main>
 
-  <!-- Floating Warenkorb Footer Bar -->
-  <div class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-amber-200 shadow-2xl px-4 py-3 pb-safe">
+  <!-- Floating Warenkorb Footer Bar (Festliches Dunkelgrün & Gold) -->
+  <div class="fixed bottom-0 left-0 right-0 z-40 bg-[#0a2117]/95 backdrop-blur-md border-t border-amber-400/30 shadow-2xl px-4 py-3 pb-safe">
     <div class="max-w-md mx-auto flex items-center justify-between">
       <button onclick="toggleCartModal(true)" class="flex items-center space-x-3 focus:outline-none">
-        <div class="relative bg-gradient-to-br from-emerald-900 to-green-950 text-white p-2.5 rounded-2xl shadow border border-amber-400/40">
+        <div class="relative bg-gradient-to-br from-emerald-950 to-green-900 text-white p-2.5 rounded-2xl shadow border border-amber-400/50 gold-glow">
           <i data-lucide="shopping-bag" class="w-5 h-5 text-amber-300"></i>
           <span id="cartBadge" class="absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow">0</span>
         </div>
         <div class="text-left">
-          <p class="text-xs text-slate-500 font-medium">Dein Festmahl</p>
-          <p id="cartTotalSum" class="text-base font-black text-emerald-950">0,00 €</p>
+          <p class="text-xs text-emerald-200/70 font-medium">Dein Festmahl</p>
+          <p id="cartTotalSum" class="text-base font-black text-amber-300">0,00 €</p>
         </div>
       </button>
 
-      <button onclick="toggleCartModal(true)" id="btnOpenCart" class="bg-gradient-to-r from-red-700 to-red-800 hover:from-red-800 hover:to-red-900 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md transition flex items-center space-x-1.5 border border-red-500/50">
+      <button onclick="toggleCartModal(true)" id="btnOpenCart" class="bg-gradient-to-r from-red-700 to-red-800 hover:from-red-800 hover:to-red-900 text-white px-5 py-2.5 rounded-xl font-black text-sm shadow-lg transition flex items-center space-x-1.5 border border-amber-400/40 active:scale-95">
         <span>Auswahl prüfen</span>
-        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-amber-300"></i>
       </button>
     </div>
   </div>
@@ -139,11 +154,11 @@
       <div class="space-y-3">
         <div>
           <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Vorname</label>
-          <input type="text" id="inputFirstName" placeholder="z. B. Santa" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white transition">
+          <input type="text" id="inputFirstName" placeholder="z. B. Fritze" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white transition">
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nachname</label>
-          <input type="text" id="inputLastName" placeholder="z. B. Claus" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white transition">
+          <input type="text" id="inputLastName" placeholder="z. B. Fischer" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white transition">
         </div>
       </div>
 
@@ -601,8 +616,8 @@
         <button onclick="setCategory('${cat}')" 
           class="px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-sm ${
             activeCategory === cat 
-              ? 'bg-emerald-900 text-amber-200 scale-105 shadow border border-amber-400/40' 
-              : 'bg-white text-slate-700 hover:bg-amber-100/50 border border-slate-200/80'
+              ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-emerald-950 font-black scale-105 shadow-md border border-amber-200' 
+              : 'festive-card text-emerald-100/80 hover:text-white festive-border hover:bg-emerald-800/40'
           }">
           ${cat}
         </button>
@@ -632,15 +647,15 @@
         }
 
         return `
-          <div onclick="openConfigModal(${dish.id})" class="bg-white rounded-2xl p-4 shadow-sm border border-amber-900/10 hover:border-amber-400 hover:shadow-md active:scale-[0.99] transition cursor-pointer flex items-center justify-between">
+          <div onclick="openConfigModal(${dish.id})" class="festive-card festive-border rounded-2xl p-4 shadow-md hover:shadow-xl active:scale-[0.99] transition-all cursor-pointer flex items-center justify-between group">
             <div class="flex-1 pr-3">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60">${dish.category}</span>
-              <h3 class="font-extrabold text-slate-900 text-base mt-1 leading-snug">${dish.name}</h3>
-              <p class="text-xs text-slate-400 mt-0.5">${hint}</p>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-amber-300/90 bg-emerald-950/80 px-2 py-0.5 rounded-md border border-amber-400/30">${dish.category}</span>
+              <h3 class="font-extrabold text-white text-base mt-1.5 leading-snug group-hover:text-amber-200 transition-colors">${dish.name}</h3>
+              <p class="text-xs text-emerald-200/60 mt-0.5">${hint}</p>
             </div>
             <div class="text-right flex flex-col items-end">
-              <span class="text-base font-black text-emerald-950">${formatEuro(dish.price)}</span>
-              <span class="mt-1 bg-amber-50 text-amber-800 p-1.5 rounded-xl flex items-center justify-center border border-amber-200/60">
+              <span class="text-base font-black text-amber-300 drop-shadow-sm">${formatEuro(dish.price)}</span>
+              <span class="mt-1.5 bg-amber-400/15 text-amber-300 p-1.5 rounded-xl flex items-center justify-center border border-amber-400/30 group-hover:bg-amber-400 group-hover:text-emerald-950 transition-all">
                 <i data-lucide="plus" class="w-4 h-4"></i>
               </span>
             </div>
@@ -938,7 +953,7 @@
 
       const bannerText = document.getElementById("statusBannerText");
       if (bannerText) {
-        bannerText.innerHTML = `Speisenvorbestellung für unsere Weihnachtsfeier am <span class="font-black text-emerald-950">${nextEventDateFormatted}</span> geöffnet! 🎄`;
+        bannerText.innerHTML = `✨ Speisenvorbestellung für unsere Weihnachtsfeier am <span class="font-black text-amber-300 tracking-wide">${nextEventDateFormatted}</span> geöffnet! 🎄`;
       }
     }
 
@@ -1431,5 +1446,73 @@
     window.saveEventDateFromAdmin = saveEventDateFromAdmin;
     window.togglePaymentStatus = togglePaymentStatus;
   </script>
+
+  <!-- Schneefall Animation Logik -->
+  <script>
+    (function initSnowfall() {
+      const canvas = document.getElementById("snowCanvas");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+
+      let width = window.innerWidth;
+      let height = window.innerHeight;
+      canvas.width = width;
+      canvas.height = height;
+
+      window.addEventListener("resize", () => {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+      });
+
+      const flakes = [];
+      const numFlakes = Math.min(55, Math.floor(width / 16));
+
+      for (let i = 0; i < numFlakes; i++) {
+        flakes.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          radius: Math.random() * 2.6 + 0.8,
+          density: Math.random() * numFlakes,
+          speed: Math.random() * 0.9 + 0.5,
+          opacity: Math.random() * 0.7 + 0.3,
+          swing: Math.random() * 2
+        });
+      }
+
+      let angle = 0;
+      function renderSnow() {
+        ctx.clearRect(0, 0, width, height);
+        angle += 0.01;
+
+        for (let i = 0; i < numFlakes; i++) {
+          const f = flakes[i];
+          ctx.beginPath();
+          ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2, false);
+          ctx.fillStyle = `rgba(255, 255, 255, ${f.opacity})`;
+          ctx.shadowBlur = 4;
+          ctx.shadowColor = "rgba(255, 255, 255, 0.5)";
+          ctx.fill();
+
+          // Bewegung
+          f.y += f.speed;
+          f.x += Math.sin(angle + f.swing) * 0.5;
+
+          // Reset wenn unten aus dem Bild
+          if (f.y > height + 5) {
+            f.y = -5;
+            f.x = Math.random() * width;
+          }
+          if (f.x > width + 5) f.x = -5;
+          if (f.x < -5) f.x = width + 5;
+        }
+
+        requestAnimationFrame(renderSnow);
+      }
+      renderSnow();
+    })();
+  </script>
+
 </body>
 </html>
