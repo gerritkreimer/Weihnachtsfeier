@@ -8,9 +8,7 @@
   <link rel="icon" type="image/png" href="./Icon.png">
   <link rel="apple-touch-icon" href="./Icon.png">
   <meta name="theme-color" content="#1b4332">
-  <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     * { -webkit-tap-highlight-color: transparent; }
@@ -74,14 +72,11 @@
   </style>
 </head>
 <body class="bg-gradient-to-b from-[#0a2117] via-[#0f2e21] to-[#071710] text-slate-100 min-h-screen flex flex-col pb-24 select-none relative overflow-x-hidden">
-  <!-- Druckbereich für A4-Ausdruck (nur beim Drucken sichtbar) -->
   <div id="printContainer" class="hidden"></div>
-
-  <!-- Animierter Schneefall Canvas (leichtgewichtig, performant & klick-durchlässig) -->
   <canvas id="snowCanvas" class="fixed inset-0 pointer-events-none z-10"></canvas>
 
-  <!-- Header: Festliches Tannengrün & Gold -->
-  <header class="bg-gradient-to-r from-emerald-950 via-green-900 to-emerald-950 text-white px-4 py-4 sticky top-0 z-30 shadow-md snow-bg border-b border-amber-500/30">
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-emerald-950 via-green-900 to-emerald-950 text-white px-4 py-4 sticky top-0 z-30 shadow-md border-b border-amber-500/30">
     <div class="max-w-md mx-auto flex items-center justify-between">
       <div class="flex items-center space-x-2.5 cursor-pointer" onclick="handleAdminTrigger()" title="Admin-Bereich öffnen">
         <span class="text-2xl select-none active:scale-125 transition-transform">🎄</span>
@@ -111,16 +106,13 @@
 
   <!-- Main Container -->
   <main class="max-w-md mx-auto w-full px-3 pt-3 flex-1">
-
-    <!-- Status Banner: Dynamische Ampel -->
     <div id="shopStatusBanner" class="mb-3 rounded-2xl p-3.5 flex items-center space-x-3 text-xs shadow-lg border transition-all duration-300 festive-card festive-border text-emerald-100 gold-glow relative z-20">
       <div id="statusDot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping flex-shrink-0"></div>
       <div id="statusBannerText" class="flex-1 font-medium">
-        Speisenauswahl für unsere <span class="font-black text-emerald-950">Weihnachtsfeier</span> geöffnet!
+        Speisenauswahl für unsere <span class="font-black text-amber-300">Weihnachtsfeier</span> geöffnet!
       </div>
     </div>
 
-    <!-- Meine aktuelle Bestellung Card (Erscheint nur wenn Bestellung vorliegt) -->
     <div id="userOrderCard" class="hidden mb-3 festive-card border-2 border-amber-400/80 rounded-2xl p-4 shadow-xl gold-glow relative z-20 text-slate-100">
       <div class="flex items-center justify-between pb-2 border-b border-amber-100">
         <div class="flex items-center space-x-1.5 text-emerald-950">
@@ -129,11 +121,7 @@
         </div>
         <span id="userOrderStatusBadge" class="text-[10px] font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">Gebucht</span>
       </div>
-
-      <div id="userOrderItemsList" class="py-2.5 space-y-1.5 text-xs">
-        <!-- Dynamisch befüllt -->
-      </div>
-
+      <div id="userOrderItemsList" class="py-2.5 space-y-1.5 text-xs"></div>
       <div class="pt-2 border-t border-amber-100 flex items-center justify-between">
         <div>
           <span class="text-[11px] text-slate-400 font-semibold">Gesamtsumme</span>
@@ -147,19 +135,11 @@
       <p id="orderLockNotice" class="hidden text-[10px] text-red-700 font-medium mt-1 text-right">Bestellfenster geschlossen</p>
     </div>
 
-    <!-- Kategorien Tabs -->
-    <div class="flex space-x-2 overflow-x-auto no-scrollbar pb-2 pt-1" id="categoryBar">
-      <!-- Dynamisch per JS -->
-    </div>
-
-    <!-- Speisen Liste -->
-    <div class="space-y-2.5 mt-2" id="dishesList">
-      <!-- Dynamisch per JS -->
-    </div>
-
+    <div class="flex space-x-2 overflow-x-auto no-scrollbar pb-2 pt-1" id="categoryBar"></div>
+    <div class="space-y-2.5 mt-2" id="dishesList"></div>
   </main>
 
-  <!-- Floating Warenkorb Footer Bar (Festliches Dunkelgrün & Gold) -->
+  <!-- Floating Warenkorb Footer Bar -->
   <div class="fixed bottom-0 left-0 right-0 z-40 bg-[#0a2117]/95 backdrop-blur-md border-t border-amber-400/30 shadow-2xl px-4 py-3 pb-safe">
     <div class="max-w-md mx-auto flex items-center justify-between">
       <button onclick="toggleCartModal(true)" class="flex items-center space-x-3 focus:outline-none">
@@ -180,7 +160,7 @@
     </div>
   </div>
 
-  <!-- MODAL: Nutzer Vor- und Nachname erfassen -->
+  <!-- MODAL: Nutzer -->
   <div id="userModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl text-left border border-amber-200">
       <div class="flex items-center space-x-3 mb-4">
@@ -192,7 +172,6 @@
           <p class="text-xs text-slate-500">Für die Vorbestellungsliste</p>
         </div>
       </div>
-
       <div class="space-y-3">
         <div>
           <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Vorname <span class="text-slate-400 font-normal lowercase">(z. B. Santa)</span></label>
@@ -200,4 +179,286 @@
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nachname <span class="text-slate-400 font-normal lowercase">(z. B. Claus)</span></label>
-          <input type="text" id="inputLastName" placeholder="Nachname eingeben" class="w-
+          <input type="text" id="inputLastName" placeholder="Nachname eingeben" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white transition">
+        </div>
+      </div>
+      <button onclick="saveUserNames()" class="mt-5 w-full bg-emerald-900 hover:bg-emerald-800 active:scale-95 text-amber-200 font-bold py-3 rounded-xl shadow-md transition text-sm flex items-center justify-center space-x-2 border border-amber-400/40">
+        <span>Speichern & Fortfahren</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: Speise Konfigurator -->
+  <div id="itemConfigModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center transition-opacity">
+    <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 shadow-2xl max-h-[90vh] flex flex-col border-t sm:border border-amber-300">
+      <div class="flex justify-between items-start pb-3 border-b border-slate-100">
+        <div>
+          <span id="modalDishCategory" class="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Kategorie</span>
+          <h2 id="modalDishName" class="text-lg font-black text-slate-900 leading-tight">Gerichtname</h2>
+          <div class="flex items-center space-x-2 mt-0.5">
+            <p id="modalDishBasePrice" class="text-sm font-semibold text-slate-500">0,00 €</p>
+            <a id="modalPdfBtn" href="#" target="_blank" rel="noopener noreferrer" class="hidden text-[11px] font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-300 px-2.5 py-1 rounded-lg flex items-center space-x-1 transition active:scale-95">
+              <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+              <span>Speisekarte (PDF)</span>
+            </a>
+          </div>
+        </div>
+        <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-700 p-1 rounded-full bg-slate-100">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="overflow-y-auto py-4 space-y-4 flex-1">
+        <div id="opt1Container">
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-2" id="opt1Title">Variante</label>
+          <div class="grid grid-cols-1 gap-2" id="opt1Options"></div>
+        </div>
+        <div id="opt2Container">
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-2" id="opt2Title">Beilage wählen</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="opt2Options"></div>
+        </div>
+        <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+          <span class="text-sm font-bold text-slate-700">Portionen</span>
+          <div class="flex items-center space-x-3 bg-slate-100 p-1 rounded-xl border border-slate-200">
+            <button type="button" onclick="adjustQuantity(-1)" class="w-10 h-10 bg-white rounded-lg shadow-sm font-black text-xl text-slate-700 flex items-center justify-center hover:bg-slate-50 active:scale-95 transition">-</button>
+            <span id="modalQuantity" class="w-8 text-center font-black text-base text-slate-900">1</span>
+            <button type="button" onclick="adjustQuantity(1)" class="w-10 h-10 bg-white rounded-lg shadow-sm font-black text-xl text-slate-700 flex items-center justify-center hover:bg-slate-50 active:scale-95 transition">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+        <div>
+          <p class="text-xs text-slate-400 font-medium">Gesamt</p>
+          <p id="modalCalculatedSum" class="text-xl font-black text-emerald-950">0,00 €</p>
+        </div>
+        <button onclick="addCurrentItemToCart()" class="bg-emerald-900 hover:bg-emerald-800 active:scale-95 text-amber-200 font-bold px-6 py-3 rounded-xl shadow-lg transition flex items-center space-x-2 border border-amber-400/40">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>In den Warenkorb</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Warenkorb -->
+  <div id="cartModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center transition-opacity">
+    <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 shadow-2xl max-h-[90vh] flex flex-col border-t sm:border border-amber-300">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+        <div class="flex items-center space-x-2 text-emerald-950">
+          <i data-lucide="shopping-bag" class="w-5 h-5 text-amber-600"></i>
+          <h2 class="text-lg font-black">Dein Weihnachtsessen</h2>
+        </div>
+        <button onclick="toggleCartModal(false)" class="text-slate-400 hover:text-slate-700 p-1 rounded-full bg-slate-100">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="mt-3 bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-center justify-between text-xs">
+        <div>
+          <span class="text-slate-500">Bestellung für:</span>
+          <p id="cartUserName" class="font-black text-emerald-950 text-sm">Noch nicht angemeldet</p>
+        </div>
+        <button onclick="editUserPrompt()" class="text-amber-800 font-bold underline">Ändern</button>
+      </div>
+      <div id="cartItemsList" class="overflow-y-auto py-3 space-y-2 flex-1 divide-y divide-slate-100"></div>
+      <div class="pt-3 border-t border-slate-100 space-y-3">
+        <div class="flex justify-between items-baseline">
+          <span class="text-sm font-bold text-slate-600">Gesamtbetrag</span>
+          <span id="cartModalTotal" class="text-2xl font-black text-emerald-950">0,00 €</span>
+        </div>
+        <button onclick="submitOrder()" id="btnSubmitOrder" class="w-full bg-gradient-to-r from-red-700 to-red-800 hover:from-red-800 hover:to-red-900 active:scale-95 text-white font-black py-3.5 rounded-xl shadow-lg transition flex items-center justify-center space-x-2 text-base border border-red-500/50">
+          <i data-lucide="check-circle" class="w-5 h-5 text-amber-300"></i>
+          <span>Verbindlich vorbestellen</span>
+        </button>
+        <p class="text-[11px] text-center text-slate-400">Vorbestellung für die Weihnachtsfeier</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Bestätigung -->
+  <div id="successModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center flex flex-col items-center border border-amber-300">
+      <div class="w-14 h-14 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mb-3">
+        <i data-lucide="sparkles" class="w-8 h-8 text-amber-600"></i>
+      </div>
+      <h3 class="text-xl font-black text-slate-900">Essen vorbestellt! 🎄</h3>
+      <p class="text-xs text-slate-500 mt-1" id="successModalSubtitle">Deine Auswahl wurde gespeichert.</p>
+      <div class="my-4 bg-amber-50/60 border border-amber-200 rounded-2xl p-4 w-full">
+        <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Vorbestellter Betrag</p>
+        <p id="successModalAmount" class="text-3xl font-black text-emerald-950 mt-1">0,00 €</p>
+      </div>
+      <button onclick="finishOrderAndReload()" class="w-full bg-emerald-900 hover:bg-emerald-800 text-amber-200 font-bold py-3 rounded-xl shadow-md transition text-sm">
+        Super, danke!
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: ADMIN -->
+  <div id="adminModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center transition-opacity">
+    <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-2xl p-5 shadow-2xl max-h-[92vh] flex flex-col border-t sm:border border-amber-300">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center font-bold">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-black text-slate-900">Admin-Auswertung</h2>
+            <p class="text-[11px] text-slate-400">Weihnachtsfeier-Bestellungen</p>
+          </div>
+        </div>
+        <button onclick="closeAdminModal()" class="text-slate-400 hover:text-slate-700 p-1 rounded-full bg-slate-100">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="mb-3 bg-amber-50/80 border border-amber-200 rounded-2xl p-3 text-xs mt-3">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="font-black text-amber-950 flex items-center space-x-1">
+            <i data-lucide="calendar" class="w-3.5 h-3.5 text-amber-700"></i>
+            <span>Datum der Weihnachtsfeier</span>
+          </span>
+          <span id="adminCurrentDateDisplay" class="font-bold text-amber-800 font-mono">--</span>
+        </div>
+        <div class="flex items-center space-x-2">
+          <input type="date" id="adminDateInput" class="flex-1 bg-white border border-amber-300 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500">
+          <button onclick="saveEventDateFromAdmin()" class="bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-bold px-3 py-1.5 rounded-xl shadow-sm transition">
+            Speichern
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2 my-2">
+        <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-2.5 text-center">
+          <p class="text-[10px] uppercase font-bold text-emerald-700">Besteller</p>
+          <p id="adminTotalOrders" class="text-lg font-black text-emerald-950">0</p>
+        </div>
+        <div class="bg-amber-50 border border-amber-100 rounded-xl p-2.5 text-center">
+          <p class="text-[10px] uppercase font-bold text-amber-700">Bezahlt</p>
+          <p id="adminPaidSummary" class="text-lg font-black text-amber-950">0 / 0</p>
+        </div>
+        <div class="bg-red-50 border border-red-100 rounded-xl p-2.5 text-center">
+          <p class="text-[10px] uppercase font-bold text-red-700">Umsatz</p>
+          <p id="adminTotalRevenue" class="text-xs font-black text-slate-900 mt-1">0,00 €</p>
+        </div>
+      </div>
+
+      <div class="mb-3 space-y-2">
+        <button onclick="sendWhatsAppToVendor()" class="w-full bg-[#25D366] hover:bg-[#1ebd5a] active:scale-95 text-slate-950 font-black py-2.5 px-4 rounded-xl shadow-md transition flex items-center justify-center space-x-2 text-sm">
+          <i data-lucide="message-circle" class="w-4 h-4"></i>
+          <span>Gesamtbestellung via WhatsApp senden</span>
+        </button>
+        <button onclick="printOrderOverview()" class="w-full bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-black py-2.5 px-4 rounded-xl shadow-md transition flex items-center justify-center space-x-2 text-sm border border-slate-700">
+          <i data-lucide="printer" class="w-4 h-4 text-amber-400"></i>
+          <span>Bestellübersicht drucken (A4 / PDF)</span>
+        </button>
+      </div>
+
+      <div class="flex space-x-1.5 border-b border-slate-200 pb-1 text-xs font-bold overflow-x-auto no-scrollbar">
+        <button id="tabAggBtn" onclick="switchAdminTab('agg')" class="px-2.5 py-1.5 border-b-2 border-emerald-900 text-emerald-900 whitespace-nowrap">
+          Küchen-Gesamtliste
+        </button>
+        <button id="tabUsersBtn" onclick="switchAdminTab('users')" class="px-2.5 py-1.5 border-b-2 border-transparent text-slate-500 whitespace-nowrap">
+          Kollegen-Abrechnung
+        </button>
+        <button id="tabHistoryBtn" onclick="switchAdminTab('history')" class="px-2.5 py-1.5 border-b-2 border-transparent text-slate-500 whitespace-nowrap flex items-center space-x-1">
+          <i data-lucide="archive" class="w-3.5 h-3.5"></i>
+          <span>Historie / Archiv</span>
+        </button>
+      </div>
+
+      <div class="overflow-y-auto py-3 flex-1 text-xs space-y-2" id="adminTabContent"></div>
+
+      <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+        <button onclick="refreshLiveOrders()" class="text-emerald-800 font-bold flex items-center space-x-1">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          <span>Aktualisieren</span>
+        </button>
+        <button onclick="archiveCurrentOrders()" class="text-amber-800 hover:text-amber-950 font-bold flex items-center space-x-1 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1.5 rounded-xl transition">
+          <i data-lucide="archive" class="w-3.5 h-3.5"></i>
+          <span>Feier abschließen & archivieren</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIREBASE SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      getDocs,
+      deleteDoc,
+      doc,
+      serverTimestamp,
+      query,
+      where,
+      getDoc,
+      setDoc,
+      updateDoc
+    } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBcoYOQDqx9Coj5cbJfhbUMMPd-Qy0T06I",
+      authDomain: "fischbroetchen-65239.firebaseapp.com",
+      projectId: "fischbroetchen-65239",
+      storageBucket: "fischbroetchen-65239.firebasestorage.app",
+      messagingSenderId: "179788959848",
+      appId: "1:179788959848:web:8ac9f3d25eaaf6e3e82bdd"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const ORDERS_COL = "weihnachtsfeier_bestellungen";
+
+    window.db = db;
+    window.ORDERS_COL = ORDERS_COL;
+    window.addDoc = addDoc;
+    window.collection = collection;
+    window.getDocs = getDocs;
+    window.deleteDoc = deleteDoc;
+    window.doc = doc;
+    window.serverTimestamp = serverTimestamp;
+    window.query = query;
+    window.where = where;
+    window.getDoc = getDoc;
+    window.setDoc = setDoc;
+    window.updateDoc = updateDoc;
+
+    window.dispatchEvent(new CustomEvent("firebase-ready"));
+  </script>
+
+  <!-- APP LOGIK -->
+  <script>
+    const ADMIN_PIN = "9600";
+
+    const STANDARD_BEILAGEN = [
+      { name: "Pommes (inklusive)", price: 0 },
+      { name: "Twister", price: 2.00 },
+      { name: "Wedges", price: 2.00 },
+      { name: "Süßkartoffel-Pommes", price: 2.00 }
+    ];
+
+    const DISHES = [
+      { id: 101, category: "Burger & Spezialburger", name: "Sun Burger", price: 9.90, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 102, category: "Burger & Spezialburger", name: "Lady Burger", price: 8.00, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 103, category: "Burger & Spezialburger", name: "Sun Cheese", price: 10.40, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 104, category: "Burger & Spezialburger", name: "Sun Double", price: 11.80, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 105, category: "Burger & Spezialburger", name: "Sun Double Cheese", price: 12.90, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 106, category: "Burger & Spezialburger", name: "Sun Louis", price: 11.80, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 107, category: "Burger & Spezialburger", name: "Sun Double Louis Style", price: 14.50, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 108, category: "Burger & Spezialburger", name: "H & S Burger", price: 11.50, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 109, category: "Burger & Spezialburger", name: "Sun Francis Burger", price: 11.60, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 110, category: "Burger & Spezialburger", name: "Chili Burger", price: 13.50, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 111, category: "Burger & Spezialburger", name: "Hawaii Burger", price: 11.60, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 112, category: "Burger & Spezialburger", name: "Chicken Burger", price: 12.20, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 113, category: "Burger & Spezialburger", name: "B & E Burger", price: 12.50, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 114, category: "Burger & Spezialburger", name: "Meggie Burger Veggie", price: 12.00, hasBeilage: true, pdf: "Burger.pdf" },
+      { id: 115, category: "Burger & Spezialburger", name: "Surf & Turf Burger", price: 14.50, hasBeilage: true, pdf: "Spezial.pdf" },
+      { id: 116, category: "Burger & Spezialburger", name: "Tartufo Calabrese Burger", price: 14.50, hasBeilage: true, pdf: "Spezial.pdf" },
+      { id: 117, category: "Burger & Spezialburger", name: "Camembert Burger", price: 11.90, hasBeilage: true, pdf: "Spezial.pdf" },
+      { id: 118, category: "Burger & Spezialburger", name: "King of Bacon Burger", price: 14.50, hasBeilage: true, pdf: "Spezial.pdf" },
+
+      { id: 201, category: "Schnitzelparty", name: "Kröstchen", price: 12.90, hasBeilage: true, pdf: "Schnitzel.pdf" },
+      { id: 202, category: "Schnitzelparty", name: "Champignonrahmschnitzel", price: 12.90, hasBeilage: true, pdf: "Schnitzel.pdf" },
+      { id: 203, category: "Schnitzelparty", name: "Zigeunerschnitzel", price: 12.90, hasBeilage: true, pdf: "
