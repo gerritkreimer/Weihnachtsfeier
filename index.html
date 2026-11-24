@@ -1379,40 +1379,126 @@
     // --- WHATSAPP EXPORT AN DAS RESTAURANT ---
     
     // --- BESTELLÜBERSICHT DRUCKEN (A4 / PDF) ---
+// --- BESTELLÜBERSICHT DRUCKEN (GASTSTÄTTE / A4 / PDF) ---
     function printOrderOverview() {
       if (liveOrders.length === 0) {
         alert("Es liegen aktuell keine aktiven Bestellungen zum Drucken vor.");
         return;
       }
 
-      // 1. Küchen-Aggregation aufbauen
+      // 1. Küchen-Aggregation aufbauen (ohne Preise)
       const dishesMap = {};
       let totalPieces = 0;
-      let grandTotal = 0;
-      let totalPaidOrders = 0;
 
       liveOrders.forEach(o => {
-        grandTotal += Number(o.gesamtpreis) || 0;
-        if (o.bezahlt === true) totalPaidOrders++;
-
         (o.artikel || []).forEach(a => {
           const dishName = a.speise;
           const details = (a.details || "").trim();
           const menge = Number(a.menge) || 1;
-          const summe = Number(a.gesamt) || 0;
 
           if (!dishesMap[dishName]) {
-            dishesMap[dishName] = { total: 0, summe: 0, variants: {} };
+            dishesMap[dishName] = { total: 0, variants: {} };
           }
 
           dishesMap[dishName].total += menge;
-          dishesMap[dishName].summe += summe;
           totalPieces += menge;
 
           const varKey = (!details || details === "Standard") ? "Standard" : details;
           dishesMap[dishName].variants[varKey] = (dishesMap[dishName].variants[varKey] || 0) + menge;
         });
       });
+
+      const sortedDishes = Object.keys(dishesMap).sort((a, b) => a.localeCompare(b, "de"));
+      const sortedUsers = [...liveOrders].sort((a, b) => a.besteller.localeCompare(b.besteller, "de"));
+      const terminTitel = nextEventDateFormatted || "Weihnachtsfeier";
+      const nowStr = new Date().toLocaleString("de-DE", { dateStyle: "medium", timeStyle: "short" });
+
+      const printHtml = `
+        <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.35;">
+          <!-- Kopfzeile -->
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #14532d; padding-bottom: 8px; margin-bottom: 12px;">
+            <div>
+              <h1 style="font-size: 20px; font-weight: bold; margin: 0; color: #0f172a;">Weihnachtsessen – Vorbestellung Gaststätte</h1>
+              <p style="font-size: 13px; margin: 3px 0 0 0; color: #334155;">Termin: <b>${terminTitel}</b></p>
+            </div>
+            <div style="text-align: right; font-size: 11px; color: #475569;">
+              <p style="margin: 0;">Stand: ${nowStr} Uhr</p>
+              <p style="margin: 2px 0 0 0; font-weight: bold; color: #0f172a;">${liveOrders.length} Gäste | ${totalPieces} Gerichte</p>
+            </div>
+          </div>
+
+          <!-- TEIL 1: KÜCHEN-SAMMELLISTE -->
+          <div style="margin-bottom: 18px;">
+            <div style="background-color: #f1f5f9; padding: 6px 10px; font-size: 13px; font-weight: bold; border-left: 4px solid #166534; margin-bottom: 8px;">
+              1. Küchen-Sammelliste (Gesamtübersicht)
+            </div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+              <thead>
+                <tr style="background-color: #e2e8f0; text-align: left;">
+                  <th style="padding: 5px 8px; border: 1px solid #cbd5e1; width: 65px; text-align: center;">Menge</th>
+                  <th style="padding: 5px 8px; border: 1px solid #cbd5e1;">Gericht</th>
+                  <th style="padding: 5px 8px; border: 1px solid #cbd5e1;">Beilagen / Varianten</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${sortedDishes.map(dName => {
+                  const item = dishesMap[dName];
+                  const varList = Object.keys(item.variants)
+                    .sort((a, b) => a.localeCompare(b, "de"))
+                    .map(vk => `<b>${item.variants[vk]}x</b> ${vk}`)
+                    .join(", ");
+                  return `
+                    <tr>
+                      <td style="padding: 5px 8px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; font-size: 12px; background-color: #fafafa;">${item.total}x</td>
+                      <td style="padding: 5px 8px; border: 1px solid #cbd5e1; font-weight: bold;">${dName}</td>
+                      <td style="padding: 5px 8px; border: 1px solid #cbd5e1; color: #334155;">${varList}</td>
+                    </tr>
+                  `;
+                }).join("")}
+                <tr style="background-color: #f8fafc; font-weight: bold;">
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: center; font-size: 13px;">${totalPieces}</td>
+                  <td colspan="2" style="padding: 6px 8px; border: 1px solid #cbd5e1;">Gesamtanzahl Gerichte</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- TEIL 2: GÄSTE- & TISCHLISTE -->
+          <div>
+            <div style="background-color: #f1f5f9; padding: 6px 10px; font-size: 13px; font-weight: bold; border-left: 4px solid #1e3a8a; margin-bottom: 8px;">
+              2. Gäste- & Tischliste
+            </div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 10.5px;">
+              <thead>
+                <tr style="background-color: #e2e8f0; text-align: left;">
+                  <th style="padding: 5px 6px; border: 1px solid #cbd5e1; width: 32px; text-align: center;">Nr.</th>
+                  <th style="padding: 5px 6px; border: 1px solid #cbd5e1; width: 160px;">Name</th>
+                  <th style="padding: 5px 6px; border: 1px solid #cbd5e1;">Bestellte Speisen & Beilagen</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${sortedUsers.map((u, i) => {
+                  const itemsSummary = (u.artikel || [])
+                    .map(a => `${a.menge}x ${a.speise} (${a.details || "Standard"})`)
+                    .join("<br>");
+                  return `
+                    <tr>
+                      <td style="padding: 5px 6px; border: 1px solid #cbd5e1; text-align: center; color: #64748b;">${i + 1}</td>
+                      <td style="padding: 5px 6px; border: 1px solid #cbd5e1; font-weight: bold; color: #0f172a;">${u.besteller}</td>
+                      <td style="padding: 5px 6px; border: 1px solid #cbd5e1;">${itemsSummary}</td>
+                    </tr>
+                  `;
+                }).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+
+      const printContainer = document.getElementById("printContainer");
+      printContainer.innerHTML = printHtml;
+      window.print();
+    }
 
       const sortedDishes = Object.keys(dishesMap).sort();
       const sortedUsers = [...liveOrders].sort((a, b) => a.besteller.localeCompare(b.besteller));
