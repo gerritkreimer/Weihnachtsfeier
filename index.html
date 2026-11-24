@@ -135,12 +135,19 @@
       <p id="orderLockNotice" class="hidden text-[10px] text-red-700 font-medium mt-1 text-right">Bestellfenster geschlossen</p>
     </div>
 
-    <div class="flex space-x-2 overflow-x-auto no-scrollbar pb-2 pt-1" id="categoryBar"></div>
-    <div class="space-y-2.5 mt-2" id="dishesList"></div>
+    <div id="shopClosedNotice" class="hidden mb-3 festive-card border border-red-400/50 rounded-2xl p-5 text-center shadow-lg relative z-20 space-y-1.5">
+      <p class="text-sm font-black text-amber-200">🔒 Vorbestellung aktuell geschlossen</p>
+      <p class="text-xs text-emerald-100/80">Neue Bestellungen und Änderungen sind derzeit nicht möglich.</p>
+    </div>
+
+    <div id="shopCatalogArea" class="relative z-20">
+      <div class="flex space-x-2 overflow-x-auto no-scrollbar pb-2 pt-1" id="categoryBar"></div>
+      <div class="space-y-2.5 mt-2" id="dishesList"></div>
+    </div>
   </main>
 
   <!-- Floating Warenkorb Footer Bar -->
-  <div class="fixed bottom-0 left-0 right-0 z-40 bg-[#0a2117]/95 backdrop-blur-md border-t border-amber-400/30 shadow-2xl px-4 py-3 pb-safe">
+  <div id="cartFooterBar" class="fixed bottom-0 left-0 right-0 z-40 bg-[#0a2117]/95 backdrop-blur-md border-t border-amber-400/30 shadow-2xl px-4 py-3 pb-safe">
     <div class="max-w-md mx-auto flex items-center justify-between">
       <button onclick="toggleCartModal(true)" class="flex items-center space-x-3 focus:outline-none">
         <div class="relative bg-gradient-to-br from-emerald-950 to-green-900 text-white p-2.5 rounded-2xl shadow border border-amber-400/50 gold-glow">
@@ -310,7 +317,19 @@
         </button>
       </div>
 
-      <div class="mb-3 bg-amber-50/80 border border-amber-200 rounded-2xl p-3 text-xs mt-3">
+      <!-- Shop-Status Steuerung -->
+      <div class="mb-2 bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs mt-3 flex items-center justify-between">
+        <div>
+          <span class="font-black text-slate-900 block">Bestell-Shop Status</span>
+          <span id="adminShopStateLabel" class="text-[11px] font-bold text-emerald-700">Shop ist geöffnet</span>
+        </div>
+        <button type="button" id="btnToggleShopOpen" onclick="toggleShopOpenStatus()"
+          class="px-3.5 py-2 rounded-xl font-black text-xs transition active:scale-95 shadow-sm">
+          Shop schließen
+        </button>
+      </div>
+
+      <div class="mb-3 bg-amber-50/80 border border-amber-200 rounded-2xl p-3 text-xs mt-2">
         <div class="flex items-center justify-between mb-1.5">
           <span class="font-black text-amber-950 flex items-center space-x-1">
             <i data-lucide="calendar" class="w-3.5 h-3.5 text-amber-700"></i>
@@ -496,6 +515,7 @@
     let liveOrders = [];
     let archivedOrders = [];
     let currentAdminTab = "agg";
+    let isShopOpen = true;
 
     let currentDish = null;
     let selectedVariant = null;
@@ -559,6 +579,94 @@
       document.getElementById("cartUserName").textContent = fullName || "Unbekannt";
     }
 
+    function applyShopStateUI() {
+      const dot = document.getElementById("statusDot");
+      const bannerText = document.getElementById("statusBannerText");
+      const closedNotice = document.getElementById("shopClosedNotice");
+      const catalogArea = document.getElementById("shopCatalogArea");
+      const cartFooter = document.getElementById("cartFooterBar");
+      const btnEditOrder = document.getElementById("btnCancelOrEditOrder");
+      const lockNotice = document.getElementById("orderLockNotice");
+      const adminStateLabel = document.getElementById("adminShopStateLabel");
+      const btnToggleShop = document.getElementById("btnToggleShopOpen");
+
+      if (isShopOpen) {
+        if (dot) dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping flex-shrink-0";
+        if (bannerText) {
+          bannerText.innerHTML = `✨ Speisenvorbestellung für unsere Weihnachtsfeier am <span class="font-black text-amber-300 tracking-wide">${nextEventDateFormatted || "Weihnachtsfeier"}</span> geöffnet! 🎄`;
+        }
+        if (closedNotice) closedNotice.classList.add("hidden");
+        if (catalogArea) catalogArea.classList.remove("hidden");
+        if (cartFooter) cartFooter.classList.remove("hidden");
+        if (btnEditOrder) btnEditOrder.classList.remove("hidden");
+        if (lockNotice) lockNotice.classList.add("hidden");
+
+        if (adminStateLabel) {
+          adminStateLabel.textContent = "Shop ist geöffnet";
+          adminStateLabel.className = "text-[11px] font-bold text-emerald-700";
+        }
+        if (btnToggleShop) {
+          btnToggleShop.textContent = "Shop schließen";
+          btnToggleShop.className = "px-3.5 py-2 rounded-xl font-black text-xs transition active:scale-95 shadow-sm bg-red-600 hover:bg-red-700 text-white";
+        }
+      } else {
+        if (dot) dot.className = "w-2.5 h-2.5 rounded-full bg-red-500 flex-shrink-0";
+        if (bannerText) {
+          bannerText.innerHTML = `🔒 Vorbestellung für <span class="font-black text-amber-300 tracking-wide">${nextEventDateFormatted || "Weihnachtsfeier"}</span> aktuell geschlossen.`;
+        }
+        if (closedNotice) closedNotice.classList.remove("hidden");
+        if (catalogArea) catalogArea.classList.add("hidden");
+        if (cartFooter) cartFooter.classList.add("hidden");
+        if (btnEditOrder) btnEditOrder.classList.add("hidden");
+        if (lockNotice) lockNotice.classList.remove("hidden");
+
+        if (adminStateLabel) {
+          adminStateLabel.textContent = "Shop ist geschlossen";
+          adminStateLabel.className = "text-[11px] font-bold text-red-600";
+        }
+        if (btnToggleShop) {
+          btnToggleShop.textContent = "Shop öffnen";
+          btnToggleShop.className = "px-3.5 py-2 rounded-xl font-black text-xs transition active:scale-95 shadow-sm bg-emerald-600 hover:bg-emerald-700 text-white";
+        }
+      }
+    }
+
+    async function loadShopState() {
+      applyShopStateUI();
+      if (window.db && window.getDoc && window.doc) {
+        try {
+          const docRef = window.doc(window.db, "einstellungen", "weihnachtsfeier_shop");
+          const snap = await window.getDoc(docRef);
+          if (snap.exists() && typeof snap.data().geoeffnet === "boolean") {
+            isShopOpen = snap.data().geoeffnet;
+            applyShopStateUI();
+          }
+        } catch (err) {
+          console.warn("Shop-Status konnte nicht geladen werden:", err);
+        }
+      }
+    }
+
+    async function toggleShopOpenStatus() {
+      const nextState = !isShopOpen;
+      if (!window.db || !window.setDoc || !window.doc) {
+        isShopOpen = nextState;
+        applyShopStateUI();
+        return;
+      }
+
+      try {
+        await window.setDoc(window.doc(window.db, "einstellungen", "weihnachtsfeier_shop"), {
+          geoeffnet: nextState,
+          aktualisiertAm: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString()
+        });
+        isShopOpen = nextState;
+        applyShopStateUI();
+      } catch (err) {
+        alert("Shop-Status konnte nicht gespeichert werden: " + err.message);
+      }
+    }
+
     function checkAdminStatus() {
       if (sessionStorage.getItem("weihnacht_admin_authenticated") === "true") {
         document.getElementById("adminBadge").classList.remove("hidden");
@@ -581,6 +689,7 @@
 
       document.getElementById("adminBadge").classList.remove("hidden");
       document.getElementById("adminModal").classList.remove("hidden");
+      applyShopStateUI();
       refreshIcons();
       await refreshLiveOrders();
     }
@@ -657,6 +766,10 @@
     }
 
     function openConfigModal(dishId) {
+      if (!isShopOpen) {
+        alert("Der Shop ist aktuell geschlossen.");
+        return;
+      }
       currentDish = DISHES.find(d => d.id === dishId);
       if (!currentDish) return;
 
@@ -761,6 +874,10 @@
     }
 
     function addCurrentItemToCart() {
+      if (!isShopOpen) {
+        alert("Der Shop ist aktuell geschlossen.");
+        return;
+      }
       if (!currentDish) return;
 
       const varPrice = selectedVariant ? selectedVariant.price : 0;
@@ -803,6 +920,10 @@
     function toggleCartModal(show) {
       const modal = document.getElementById("cartModal");
       if (show) {
+        if (!isShopOpen) {
+          alert("Der Shop ist aktuell geschlossen.");
+          return;
+        }
         if (!getFormattedUser()) editUserPrompt();
         renderCartList();
         modal.classList.remove("hidden");
@@ -846,6 +967,11 @@
     }
 
     async function submitOrder() {
+      if (!isShopOpen) {
+        alert("Der Shop ist aktuell geschlossen. Bestellungen sind derzeit nicht möglich.");
+        return;
+      }
+
       if (cart.length === 0) {
         alert("Bitte lege zuerst ein Gericht in den Warenkorb.");
         return;
@@ -942,10 +1068,7 @@
       const adminInput = document.getElementById("adminDateInput");
       if (adminInput && nextEventDateStr) adminInput.value = nextEventDateStr;
 
-      const bannerText = document.getElementById("statusBannerText");
-      if (bannerText) {
-        bannerText.innerHTML = `✨ Speisenvorbestellung für unsere Weihnachtsfeier am <span class="font-black text-amber-300 tracking-wide">${nextEventDateFormatted}</span> geöffnet! 🎄`;
-      }
+      applyShopStateUI();
     }
 
     async function saveEventDateFromAdmin() {
@@ -1012,6 +1135,7 @@
 
         document.getElementById("userOrderTotal").textContent = formatEuro(myCurrentOrderDoc.gesamtpreis || 0);
         card.classList.remove("hidden");
+        applyShopStateUI();
         refreshIcons();
       } catch (err) {
         console.error(err);
@@ -1019,6 +1143,10 @@
     }
 
     async function cancelAndEditOrder() {
+      if (!isShopOpen) {
+        alert("Der Shop ist aktuell geschlossen. Bestellungen können derzeit nicht angepasst werden.");
+        return;
+      }
       if (!myCurrentOrderDoc) return;
 
       const ok = confirm("Möchtest du diese Bestellung zur Bearbeitung in den Warenkorb zurückholen? Der alte Eintrag wird dabei storniert.");
@@ -1537,9 +1665,11 @@
     window.saveEventDateFromAdmin = saveEventDateFromAdmin;
     window.togglePaymentStatus = togglePaymentStatus;
     window.printOrderOverview = printOrderOverview;
+    window.toggleShopOpenStatus = toggleShopOpenStatus;
 
     window.addEventListener("firebase-ready", () => {
       loadEventDate();
+      loadShopState();
       checkAndLoadUserOrder();
       if (sessionStorage.getItem("weihnacht_admin_authenticated") === "true") {
         refreshLiveOrders();
@@ -1552,10 +1682,12 @@
     updateCartUI();
     checkAdminStatus();
     applyEventDateUI();
+    applyShopStateUI();
     refreshIcons();
     window.addEventListener("DOMContentLoaded", () => {
       refreshIcons();
       loadEventDate();
+      loadShopState();
     });
   </script>
 
